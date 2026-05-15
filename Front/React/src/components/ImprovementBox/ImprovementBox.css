@@ -1,0 +1,18 @@
+.improvementBox {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 30px;
+  width: 800px;
+  border: 1px solid black;
+  border-radius: 12px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.improvementContent {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 10px;
+}

@@ -1,0 +1,22 @@
+.summaryBox {
+  background-color: #87e27580;
+  border: 1px solid #008000;
+  color: #437319;
+
+  display: inline-flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 670px;
+
+  border-radius: 12px;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.danger {
+  background-color: #f0808080;
+  border: 1px solid #ff080c;
+  color: #b74141;
+}

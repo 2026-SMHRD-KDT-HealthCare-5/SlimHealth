@@ -1,0 +1,9 @@
+.linkButton {
+  display: inline-block;
+  color: blue;
+  cursor: pointer;
+}
+
+.disableLink {
+  color: gray;
+}
