@@ -11,6 +11,7 @@ import {
 } from "../api/healthDataApi";
 import Context from "../context/context";
 import { inputFixWidth } from "../utils/utils";
+import { CheckBox } from "../components/CheckBox/CheckBox";
 
 const inputFields = [
   {
@@ -49,7 +50,7 @@ const inputFields = [
     key: "diastolicBp",
   },
   {
-    title: "혈당",
+    title: "공복시 혈당",
     placeholder: "현재 혈당(mg/dl) 입력",
     key: "bloodGlucose",
   },
@@ -75,6 +76,9 @@ const DataInput = () => {
     bloodGlucose: 0,
     triglyceride: 0,
   });
+
+  const [isDrink, setIsDrink] = useState(false);
+  const [isSmoke, setIsSmoke] = useState(false);
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({
@@ -124,7 +128,7 @@ const DataInput = () => {
   //데이터 저장 버튼
   const handleSaveData = async () => {
     try {
-      await saveHealthDataApi(formData);
+      await saveHealthDataApi({ ...formData, isDrink, isSmoke });
 
       openDialog(
         "데이터 저장 성공", //title
@@ -149,6 +153,8 @@ const DataInput = () => {
         const data = await getHealthDataApi();
 
         setFormData(data);
+        setIsDrink(data.isDrink);
+        setIsSmoke(data.isSmoke);
       } catch (e) {
         console.log(e);
       }
@@ -190,6 +196,23 @@ const DataInput = () => {
                 />
               );
             })}
+            <div style={{ height: 20 }}></div>
+            <div className="vertical-flex flex-align-center">
+              <CheckBox
+                isChecked={isDrink}
+                onClick={() => {
+                  setIsDrink(!isDrink);
+                }}
+                title="음주여부"
+              />
+              <CheckBox
+                isChecked={isSmoke}
+                onClick={() => {
+                  setIsSmoke(!isSmoke);
+                }}
+                title="흡연여부"
+              />
+            </div>
             <div style={{ height: 30 }}></div>
             <div className="horizontal-flex flex-align-center">
               <Button isDisabled={isSaveButtonDisable} onClick={handleSaveData}>
@@ -200,9 +223,9 @@ const DataInput = () => {
           <div style={{ width: 120 }}></div>
           {/* ocr 입력 부분 */}
           <div className="vertical-flex">
-            <div style={{ width: 359, height: 359 }}>
+            <div style={{ width: 479, height: 479 }}>
               {ocrImage && (
-                <img src={ocrImage} style={{ width: 329, height: 329 }} />
+                <img src={ocrImage} style={{ width: 459, height: 459 }} />
               )}
             </div>
             <div className="horizontal-flex flex-align-center">

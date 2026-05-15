@@ -4,12 +4,16 @@ import { Text } from "../Text/Text";
 export const ResultBox = ({
   title,
   titleColor,
+  backgroundColor,
   unit,
   currentValue,
   predictionValue,
 }) => {
   return (
-    <div className="resultBox">
+    <div
+      className="resultBox"
+      style={{ backgroundColor: backgroundColor || "white" }}
+    >
       <div style={{ color: titleColor }}>
         <Text textStyle={"bold"}>{title}</Text>
       </div>

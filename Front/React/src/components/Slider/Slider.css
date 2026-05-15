@@ -22,3 +22,8 @@
   height: 10px;
   cursor: pointer;
 }
+
+.sliderValueContainer {
+  display: flex;
+  justify-content: space-between;
+}

@@ -1,7 +1,7 @@
 .resultBox {
   display: inline-flex;
   flex-direction: row;
-  gap: 50px;
+  gap: 30px;
   align-items: center;
   border: 1px solid black;
   border-radius: 12px;
@@ -15,4 +15,7 @@
   display: inline-flex;
   flex-direction: column;
   gap: 20px;
+  flex: 1;
+  justify-content: end;
+  align-items: end;
 }

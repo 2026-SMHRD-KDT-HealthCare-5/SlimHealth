@@ -1,10 +1,11 @@
 import { useRef, useState, useEffect } from "react";
 import "./Slider.css";
 import "../../index.css";
+import { Text } from "../Text/Text";
 
 export const sliderWidth = 299;
 
-export const Slider = ({ value, onChange }) => {
+export const Slider = ({ value, onChange, maxValue, minValue }) => {
   const sliderRef = useRef(null);
   const [dragging, setDragging] = useState(false);
 
@@ -41,15 +42,25 @@ export const Slider = ({ value, onChange }) => {
     };
   });
 
-  return (
-    <div className="slider" style={{ width: sliderWidth }} ref={sliderRef}>
-      <div className="sliderLine"></div>
+  const centerValue = (maxValue + minValue) / 2;
+  const valueArray = [maxValue, centerValue, minValue];
 
-      <div
-        className="sliderCircle"
-        style={{ left: value }}
-        onMouseDown={handleMouseDown}
-      ></div>
+  return (
+    <div className="vertical-flex">
+      <div className="slider" style={{ width: sliderWidth }} ref={sliderRef}>
+        <div className="sliderLine"></div>
+
+        <div
+          className="sliderCircle"
+          style={{ left: value }}
+          onMouseDown={handleMouseDown}
+        ></div>
+      </div>
+      <div className="sliderValueContainer">
+        {valueArray.map((item, index) => {
+          return <Text key={index}>{item}</Text>;
+        })}
+      </div>
     </div>
   );
 };

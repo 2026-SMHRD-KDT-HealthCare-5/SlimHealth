@@ -8,5 +8,7 @@ export const Default = {
   args: {
     value: 30,
     onChange: () => {},
+    maxValue: 150,
+    minValue: 70,
   },
 };

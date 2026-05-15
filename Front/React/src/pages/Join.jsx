@@ -19,6 +19,12 @@ const Join = () => {
   const [name, setName] = useState("");
   //비밀번호 확인 input
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  //이메일
+  const [email, setEmail] = useState("");
+  //연락처
+  const [phoneNumber, setPhoneNumber] = useState("");
+
   //중복확인 여부
   const [isCheckedAccount, setIsCheckedAccount] = useState(false);
 
@@ -55,6 +61,8 @@ const Join = () => {
         account,
         password,
         name,
+        email,
+        phoneNumber,
       });
 
       openDialog(
@@ -73,7 +81,14 @@ const Join = () => {
 
   //회원가입 인풋 체크
   const checkJoinAble = () => {
-    return isCheckedAccount && password && password === confirmPassword && name;
+    return (
+      isCheckedAccount &&
+      password &&
+      password === confirmPassword &&
+      name &&
+      email &&
+      phoneNumber
+    );
   };
 
   return (
@@ -134,6 +149,29 @@ const Join = () => {
             title="이름"
             type="text"
             value={name}
+          />
+          <Input
+            fixWidth={inputFixWidth}
+            maxLength={30}
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
+            placeholder="이메일 입력"
+            title="이메일"
+            type="email"
+            value={email}
+          />
+          <Input
+            fixWidth={inputFixWidth}
+            maxLength={11}
+            onChange={(e) => {
+              const input = e.target.value.replace(/\D/g, "");
+              setPhoneNumber(input);
+            }}
+            placeholder="연락처 입력"
+            title="연락처"
+            type="tel"
+            value={phoneNumber}
           />
         </div>
         <Button isDisabled={!checkJoinAble()} onClick={handleJoin}>

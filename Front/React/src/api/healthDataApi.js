@@ -20,6 +20,8 @@ export const getHealthDataApi = () => {
       diastolicBp: 30,
       bloodGlucose: 40,
       triglyceride: 20,
+      isDrink: true,
+      isSmoke: false,
     });
   });
 };
@@ -50,6 +52,7 @@ export const getKPIPredictionApi = () => {
           key: "waistLine",
           title: "허리둘레",
           titleColor: "black",
+          backgroundColor: "white",
           unit: "cm",
           currentValue: 150,
           predictionValue: 170,
@@ -58,6 +61,7 @@ export const getKPIPredictionApi = () => {
           key: "cholesterol",
           title: "콜레스테롤",
           titleColor: "red",
+          backgroundColor: "white",
           unit: "mg/dl",
           currentValue: 80,
           predictionValue: 90,
@@ -65,7 +69,8 @@ export const getKPIPredictionApi = () => {
         {
           key: "bloodGlucose",
           title: "혈당",
-          titleColor: "blue",
+          titleColor: "orange",
+          backgroundColor: "white",
           unit: "mg/dl",
           currentValue: 100,
           predictionValue: 130,
@@ -74,6 +79,7 @@ export const getKPIPredictionApi = () => {
           key: "bloodPressure",
           title: "혈압",
           titleColor: "black",
+          backgroundColor: "skyBlue",
           unit: "mmHg",
           currentValue: 90,
           predictionValue: 160,
@@ -82,6 +88,7 @@ export const getKPIPredictionApi = () => {
           key: "triglyceride",
           title: "중성지방",
           titleColor: "black",
+          backgroundColor: "white",
           unit: "mg/dl",
           currentValue: 30,
           predictionValue: 50,
