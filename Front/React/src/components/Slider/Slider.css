@@ -1,0 +1,24 @@
+.slider {
+  position: relative;
+  height: 10px;
+}
+
+.sliderLine {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background-color: black;
+}
+
+.sliderCircle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+
+  background-color: black;
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+}

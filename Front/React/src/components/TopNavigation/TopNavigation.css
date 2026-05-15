@@ -1,0 +1,18 @@
+.topNavigation {
+  background-color: orange;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.naviBackBtn {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.menuList {
+  flex-grow: 1;
+}

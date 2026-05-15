@@ -1,0 +1,18 @@
+.resultBox {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 50px;
+  align-items: center;
+  border: 1px solid black;
+  border-radius: 12px;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.resultValueBox {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 20px;
+}
