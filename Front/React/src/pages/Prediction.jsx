@@ -12,14 +12,19 @@ import {
   getKPIPredictionApi,
   getSummaryResultApi,
 } from "../api/healthDataApi";
+import character1 from "../assets/character1.png";
+import character2 from "../assets/character2.png";
+import character3 from "../assets/character3.png";
+import character4 from "../assets/character4.png";
+import character5 from "../assets/character5.png";
 
 //슬라이더 이미지 url은 나중에 정해지면 변경하기
 const sliderImageList = [
-  "https://i.namu.wiki/i/roIgweqptMj-UaG7urzHMTseZyGeOlRkCNlFTpJ3dxRK0gwYhEz1oT-67Pdpg1Ejs8f-qsU8dTAfKLXqPhCAmB36n5fXwqp1lG3Yhw9qCwgfvJDM_GXzlG-KX1Gt8b2eLaSimEqQs1Ry46ylSy6OWA.svg",
-  "https://i.namu.wiki/i/fS7a7EGv-BXFYaHDTyt5MIIrc61OLHpTtWd1NQuS3yKFoRvFXJFjejBnM0ntDuDvuWf4G_i-Fba3sFcEhiLOhjR_3Mbl1x3SKbpxLQAOqlMxwq7B31kIyHlx_Jj2WW59Si2UB2FhvfoOJ03lc9r9gA.webp",
-  "https://i.namu.wiki/i/NuGzMo8W2BdlRvl6Wtly48pGXa0Eg8n20NyrcBQJ47pcrwFQGCaQpZRq1T8ceSOOJc2xCEJTKXl99rU8eUFl4g.svg",
-  "https://i.namu.wiki/i/pv5HAEyxu-Zy3LxzTRF6oEpwPvKDJgMXTAhW-HdpJdxMerCI0XU3lzcgOyImRQINA1FFTQbOMmCOCYd_wjeJf69rgLB73skFGgoqMIvzVwksSVllWk_4c08A-gd2s0ELZnPZVGTfbMTaSAm0VMU95A.webp",
-  "https://i.namu.wiki/i/vPshBrZDJ1DPIZhPVvMwxFGxPj0w2xQyojtVF07PLDPO4znQ5Pc-g76o8soOuENrE6pV2zbD21QlVTYQg1t5Fedy5x6BpcliLKbjlxjXACBVwLqG6nBLgrBAxcK1QmdoyVt3GlXZqoDNUyk_9Ikkwg.webp",
+  character1,
+  character2,
+  character3,
+  character4,
+  character5,
 ];
 
 const Prediction = () => {
@@ -72,12 +77,13 @@ const Prediction = () => {
     }
   };
 
-  //5대지표 예측결과 설정
+  //5대지표 예측결과 및 슬라이더 초기값 설정
   const fetchKPIPrediction = async () => {
     try {
       const data = await getKPIPredictionApi();
       //5대지표 예측결과 설정
-      setKpiResultList(data);
+      setKpiResultList(data.result);
+      handleChangeSlider(data.sliderValue);
     } catch (e) {
       console.log(e);
     }
@@ -107,13 +113,13 @@ const Prediction = () => {
     <div className="mainContainer">
       <TopNavigation isBackButton menuList={[]} />
       <div className="contentContainer">
-        <div style={{ height: 50 }}></div>
+        <div style={{ height: 20 }}></div>
         <Text textStyle={"bold"}>예측 결과</Text>
-        <div style={{ height: 30 }}></div>
+        <div style={{ height: 20 }}></div>
         <div className="horizontal-flex" style={{ width: "90%" }}>
           {/* 슬라이더 부분 */}
-          <div className="vertical-flex">
-            <img src={currentSliderImage} style={{ width: 300, height: 300 }} />
+          <div className="vertical-flex flex-align-center" style={{ gap: 0 }}>
+            <img src={currentSliderImage} style={{ width: 160, height: 361 }} />
             <Slider onChange={handleChangeSlider} value={sliderValue} />
           </div>
           <div style={{ width: 90 }}></div>
@@ -129,7 +135,7 @@ const Prediction = () => {
             )}
           </div>
         </div>
-        <div style={{ height: 50 }}></div>
+        <div style={{ height: 20 }}></div>
         {/* 5대 지표 예측 부분 */}
         <div className="horizontal-grid-3" style={{ width: "90%" }}>
           {kpiResultList.map((item, index) => {

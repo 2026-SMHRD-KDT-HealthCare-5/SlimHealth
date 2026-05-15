@@ -41,51 +41,54 @@ export const ocrInputApi = (file) => {
   });
 };
 
-//5대지표 예측결과 api
+//5대지표 예측결과 및 슬라이더 초기값 api
 export const getKPIPredictionApi = () => {
   return new Promise((resolve) => {
-    resolve([
-      {
-        key: "waistLine",
-        title: "허리둘레",
-        titleColor: "black",
-        unit: "cm",
-        currentValue: 150,
-        predictionValue: 170,
-      },
-      {
-        key: "cholesterol",
-        title: "콜레스테롤",
-        titleColor: "red",
-        unit: "mg/dl",
-        currentValue: 80,
-        predictionValue: 90,
-      },
-      {
-        key: "bloodGlucose",
-        title: "혈당",
-        titleColor: "blue",
-        unit: "mg/dl",
-        currentValue: 100,
-        predictionValue: 130,
-      },
-      {
-        key: "bloodPressure",
-        title: "혈압",
-        titleColor: "black",
-        unit: "mmHg",
-        currentValue: 90,
-        predictionValue: 160,
-      },
-      {
-        key: "triglyceride",
-        title: "중성지방",
-        titleColor: "black",
-        unit: "mg/dl",
-        currentValue: 30,
-        predictionValue: 50,
-      },
-    ]);
+    resolve({
+      result: [
+        {
+          key: "waistLine",
+          title: "허리둘레",
+          titleColor: "black",
+          unit: "cm",
+          currentValue: 150,
+          predictionValue: 170,
+        },
+        {
+          key: "cholesterol",
+          title: "콜레스테롤",
+          titleColor: "red",
+          unit: "mg/dl",
+          currentValue: 80,
+          predictionValue: 90,
+        },
+        {
+          key: "bloodGlucose",
+          title: "혈당",
+          titleColor: "blue",
+          unit: "mg/dl",
+          currentValue: 100,
+          predictionValue: 130,
+        },
+        {
+          key: "bloodPressure",
+          title: "혈압",
+          titleColor: "black",
+          unit: "mmHg",
+          currentValue: 90,
+          predictionValue: 160,
+        },
+        {
+          key: "triglyceride",
+          title: "중성지방",
+          titleColor: "black",
+          unit: "mg/dl",
+          currentValue: 30,
+          predictionValue: 50,
+        },
+      ],
+      sliderValue: 80,
+    });
   });
 };
 

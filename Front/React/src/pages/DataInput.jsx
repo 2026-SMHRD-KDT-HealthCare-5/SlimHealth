@@ -128,9 +128,12 @@ const DataInput = () => {
 
       openDialog(
         "데이터 저장 성공", //title
-        "데이터가 저장되었습니다.", //content
-        false, //isCancelButton
-        closeDialog, //onConfirmClick
+        "데이터가 저장되었습니다. 해당 데이터로 바로 예측하시겠습니까?", //content
+        true, //isCancelButton
+        () => {
+          nav("/prediction");
+          closeDialog();
+        }, //onConfirmClick
       );
 
       nav("/");
