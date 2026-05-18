@@ -92,92 +92,86 @@ const Join = () => {
   };
 
   return (
-    <div className="mainContainer">
-      <TopNavigation isBackButton menuList={[]} />
-      <div className="contentContainer" style={{ gap: 30 }}>
-        <Text textStyle={"bold"}>회원가입</Text>
-        <div className="vertical-flex" style={{ gap: 30 }}>
-          <div className="horizontal-flex">
-            <Input
-              fixWidth={inputFixWidth}
-              maxLength={30}
-              onChange={(e) => {
-                setIsCheckedAccount(false);
-                setAccount(e.target.value);
-              }}
-              placeholder="아이디 입력"
-              title="ID"
-              type="text"
-              value={account}
-            />
-            <OutlinedButton
-              isDisabled={!account}
-              onClick={handleCheckDuplicate}
-            >
-              중복확인
-            </OutlinedButton>
-          </div>
+    <div className="contentContainer" style={{ gap: 30 }}>
+      <Text textStyle={"bold"}>회원가입</Text>
+      <div className="vertical-flex" style={{ gap: 30 }}>
+        <div className="horizontal-flex">
           <Input
             fixWidth={inputFixWidth}
             maxLength={30}
             onChange={(e) => {
-              setPassword(e.target.value);
+              setIsCheckedAccount(false);
+              setAccount(e.target.value);
             }}
-            placeholder="비밀번호 입력"
-            title="비밀번호"
-            type="password"
-            value={password}
-          />
-          <Input
-            fixWidth={inputFixWidth}
-            maxLength={30}
-            onChange={(e) => {
-              setConfirmPassword(e.target.value);
-            }}
-            placeholder="비밀번호 재입력"
-            title="비밀번호 확인"
-            type="password"
-            value={confirmPassword}
-          />
-          <Input
-            fixWidth={inputFixWidth}
-            maxLength={30}
-            onChange={(e) => {
-              setName(e.target.value);
-            }}
-            placeholder="이름 입력"
-            title="이름"
+            placeholder="아이디 입력"
+            title="ID"
             type="text"
-            value={name}
+            value={account}
           />
-          <Input
-            fixWidth={inputFixWidth}
-            maxLength={30}
-            onChange={(e) => {
-              setEmail(e.target.value);
-            }}
-            placeholder="이메일 입력"
-            title="이메일"
-            type="email"
-            value={email}
-          />
-          <Input
-            fixWidth={inputFixWidth}
-            maxLength={11}
-            onChange={(e) => {
-              const input = e.target.value.replace(/\D/g, "");
-              setPhoneNumber(input);
-            }}
-            placeholder="연락처 입력"
-            title="연락처"
-            type="tel"
-            value={phoneNumber}
-          />
+          <OutlinedButton isDisabled={!account} onClick={handleCheckDuplicate}>
+            중복확인
+          </OutlinedButton>
         </div>
-        <Button isDisabled={!checkJoinAble()} onClick={handleJoin}>
-          회원가입 완료
-        </Button>
+        <Input
+          fixWidth={inputFixWidth}
+          maxLength={30}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
+          placeholder="비밀번호 입력"
+          title="비밀번호"
+          type="password"
+          value={password}
+        />
+        <Input
+          fixWidth={inputFixWidth}
+          maxLength={30}
+          onChange={(e) => {
+            setConfirmPassword(e.target.value);
+          }}
+          placeholder="비밀번호 재입력"
+          title="비밀번호 확인"
+          type="password"
+          value={confirmPassword}
+        />
+        <Input
+          fixWidth={inputFixWidth}
+          maxLength={30}
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
+          placeholder="이름 입력"
+          title="이름"
+          type="text"
+          value={name}
+        />
+        <Input
+          fixWidth={inputFixWidth}
+          maxLength={30}
+          onChange={(e) => {
+            setEmail(e.target.value);
+          }}
+          placeholder="이메일 입력"
+          title="이메일"
+          type="email"
+          value={email}
+        />
+        <Input
+          fixWidth={inputFixWidth}
+          maxLength={11}
+          onChange={(e) => {
+            const input = e.target.value.replace(/\D/g, "");
+            setPhoneNumber(input);
+          }}
+          placeholder="연락처 입력"
+          title="연락처"
+          type="tel"
+          value={phoneNumber}
+        />
       </div>
+      <Button isDisabled={!checkJoinAble()} onClick={handleJoin}>
+        회원가입 완료
+      </Button>
     </div>
   );
 };

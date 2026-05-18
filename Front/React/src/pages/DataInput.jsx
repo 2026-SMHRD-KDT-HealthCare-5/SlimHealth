@@ -171,74 +171,71 @@ const DataInput = () => {
   }, [ocrImage]);
 
   return (
-    <div className="mainContainer">
-      <TopNavigation isBackButton menuList={[]} />
-      <div className="contentContainer">
-        <Text textStyle={"bold"}>당신의 현재 건강 데이터를 입력하세요.</Text>
-        <Text textStyle={"bold"}>
-          또는 진단서 파일을 넣고 OCR로 입력할 수도 있습니다.
-        </Text>
-        <div style={{ height: 30 }}></div>
-        <div className="horizontal-flex">
-          {/* 데이터 입력 부분 */}
-          <div className="vertical-flex">
-            {inputFields.map((item) => {
-              return (
-                <Input
-                  key={item.key}
-                  fixWidth={inputFixWidth}
-                  maxLength={30}
-                  onChange={(e) => handleChange(item.key, e.target.value)}
-                  placeholder={item.placeholder}
-                  title={item.title}
-                  type="number"
-                  value={formData[item.key]}
-                />
-              );
-            })}
-            <div style={{ height: 20 }}></div>
-            <div className="vertical-flex flex-align-center">
-              <CheckBox
-                isChecked={isDrink}
-                onClick={() => {
-                  setIsDrink(!isDrink);
-                }}
-                title="음주여부"
+    <div className="contentContainer">
+      <Text textStyle={"bold"}>당신의 현재 건강 데이터를 입력하세요.</Text>
+      <Text textStyle={"bold"}>
+        또는 진단서 파일을 넣고 OCR로 입력할 수도 있습니다.
+      </Text>
+      <div style={{ height: 30 }}></div>
+      <div className="horizontal-flex">
+        {/* 데이터 입력 부분 */}
+        <div className="vertical-flex">
+          {inputFields.map((item) => {
+            return (
+              <Input
+                key={item.key}
+                fixWidth={inputFixWidth}
+                maxLength={30}
+                onChange={(e) => handleChange(item.key, e.target.value)}
+                placeholder={item.placeholder}
+                title={item.title}
+                type="number"
+                value={formData[item.key]}
               />
-              <CheckBox
-                isChecked={isSmoke}
-                onClick={() => {
-                  setIsSmoke(!isSmoke);
-                }}
-                title="흡연여부"
-              />
-            </div>
-            <div style={{ height: 30 }}></div>
-            <div className="horizontal-flex flex-align-center">
-              <Button isDisabled={isSaveButtonDisable} onClick={handleSaveData}>
-                건강 데이터 저장
-              </Button>
-            </div>
-          </div>
-          <div style={{ width: 120 }}></div>
-          {/* ocr 입력 부분 */}
-          <div className="vertical-flex">
-            <div style={{ width: 479, height: 479 }}>
-              {ocrImage && (
-                <img src={ocrImage} style={{ width: 459, height: 459 }} />
-              )}
-            </div>
-            <div className="horizontal-flex flex-align-center">
-              <Button onClick={handleButtonClick}>OCR로 입력</Button>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              style={{ display: "none" }}
-              onChange={handleFileChange}
+            );
+          })}
+          <div style={{ height: 20 }}></div>
+          <div className="vertical-flex flex-align-center">
+            <CheckBox
+              isChecked={isDrink}
+              onClick={() => {
+                setIsDrink(!isDrink);
+              }}
+              title="음주여부"
+            />
+            <CheckBox
+              isChecked={isSmoke}
+              onClick={() => {
+                setIsSmoke(!isSmoke);
+              }}
+              title="흡연여부"
             />
           </div>
+          <div style={{ height: 30 }}></div>
+          <div className="horizontal-flex flex-align-center">
+            <Button isDisabled={isSaveButtonDisable} onClick={handleSaveData}>
+              건강 데이터 저장
+            </Button>
+          </div>
+        </div>
+        <div style={{ width: 120 }}></div>
+        {/* ocr 입력 부분 */}
+        <div className="vertical-flex">
+          <div style={{ width: 479, height: 479 }}>
+            {ocrImage && (
+              <img src={ocrImage} style={{ width: 459, height: 459 }} />
+            )}
+          </div>
+          <div className="horizontal-flex flex-align-center">
+            <Button onClick={handleButtonClick}>OCR로 입력</Button>
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
         </div>
       </div>
     </div>

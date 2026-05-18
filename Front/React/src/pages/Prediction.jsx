@@ -124,109 +124,103 @@ const Prediction = () => {
   };
 
   return (
-    <div className="mainContainer">
-      <TopNavigation isBackButton menuList={[]} />
-      <div className="contentContainer">
-        <div style={{ height: 20 }}></div>
-        <Text textStyle={"bold"}>예측 결과</Text>
-        <div style={{ height: 20 }}></div>
-        <div className="horizontal-flex" style={{ width: "90%", gap: 20 }}>
-          <div className="vertical-flex">
-            <div className="horizontal-flex">
-              {/* 슬라이더 부분 */}
-              <div
-                className="vertical-flex flex-align-center"
-                style={{ gap: 0 }}
-              >
-                <img
-                  src={currentSliderImage}
-                  style={{ width: 160, height: 361 }}
-                />
-                <Slider
-                  onChange={(value) => {
-                    handleChangeSlider(value, true);
-                  }}
-                  value={sliderValue}
-                  maxValue={140}
-                  minValue={70}
-                />
-              </div>
-              <div style={{ width: 30 }}></div>
-              {/* 건강 요약 부분 */}
-              <div className="vertical-flex flex-align-center">
-                {summary && (
-                  <SummaryBox
-                    description={summary.description}
-                    grade={summary.grade}
-                    score={summary.score}
-                    title={summary.title}
-                  />
-                )}
-              </div>
-            </div>
-            <div style={{ height: 20 }}></div>
-            {/* 5대 지표 예측 부분 */}
-            <div className="horizontal-flex">
-              <div className="horizontal-grid-3">
-                {kpiResultList.map((item, index) => {
-                  return (
-                    <ResultBox
-                      key={index}
-                      currentValue={item.currentValue}
-                      predictionValue={item.predictionValue}
-                      title={item.title}
-                      titleColor={item.titleColor}
-                      backgroundColor={item.backgroundColor}
-                      isShadow={item.isShadow}
-                      unit={item.unit}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-          {/* 차트 부분 */}
-          <div className="bigcard" style={{ flex: 1 }}>
-            <EBarChart
-              metrics={kpiResultList.map((item) => {
-                return {
-                  current: item.currentValue,
-                  name: item.title,
-                  target: item.predictionValue,
-                };
-              })}
-            />
-          </div>
-        </div>
-        <div style={{ height: 30 }}></div>
-        {/* 개선사항 부분 */}
-        <div
-          className="bigcard vertical-flex flex-align-center"
-          style={{ width: "90%", gap: 30 }}
-        >
-          <div style={{ width: 850 }}>
-            <Text textStyle={"medium"}>개선사항</Text>
-          </div>
-          {improvementList.map((item, index) => {
-            return (
-              <ImprovementBox
-                key={index}
-                content={item.content}
-                iconType={item.iconType}
-                title={item.title}
+    <div className="contentContainer">
+      <div style={{ height: 20 }}></div>
+      <Text textStyle={"bold"}>예측 결과</Text>
+      <div style={{ height: 20 }}></div>
+      <div className="horizontal-flex" style={{ width: "90%", gap: 20 }}>
+        <div className="vertical-flex">
+          <div className="horizontal-flex">
+            {/* 슬라이더 부분 */}
+            <div className="vertical-flex flex-align-center" style={{ gap: 0 }}>
+              <img
+                src={currentSliderImage}
+                style={{ width: 160, height: 361 }}
               />
-            );
-          })}
-        </div>
-        <div style={{ height: 30 }}></div>
-        {/* 긴 분석내용 부분 */}
-        {analysisContent && (
-          <div className="bigcard vertical-flex" style={{ width: "90%" }}>
-            <Text>{analysisContent}</Text>
+              <Slider
+                onChange={(value) => {
+                  handleChangeSlider(value, true);
+                }}
+                value={sliderValue}
+                maxValue={140}
+                minValue={70}
+              />
+            </div>
+            <div style={{ width: 30 }}></div>
+            {/* 건강 요약 부분 */}
+            <div className="vertical-flex flex-align-center">
+              {summary && (
+                <SummaryBox
+                  description={summary.description}
+                  grade={summary.grade}
+                  score={summary.score}
+                  title={summary.title}
+                />
+              )}
+            </div>
           </div>
-        )}
-        <div style={{ height: 30 }}></div>
+          <div style={{ height: 20 }}></div>
+          {/* 5대 지표 예측 부분 */}
+          <div className="horizontal-flex">
+            <div className="horizontal-grid-3">
+              {kpiResultList.map((item, index) => {
+                return (
+                  <ResultBox
+                    key={index}
+                    currentValue={item.currentValue}
+                    predictionValue={item.predictionValue}
+                    title={item.title}
+                    titleColor={item.titleColor}
+                    backgroundColor={item.backgroundColor}
+                    isShadow={item.isShadow}
+                    unit={item.unit}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        {/* 차트 부분 */}
+        <div className="bigcard" style={{ flex: 1 }}>
+          <EBarChart
+            metrics={kpiResultList.map((item) => {
+              return {
+                current: item.currentValue,
+                name: item.title,
+                target: item.predictionValue,
+              };
+            })}
+          />
+        </div>
       </div>
+      <div style={{ height: 30 }}></div>
+      {/* 개선사항 부분 */}
+      <div
+        className="bigcard vertical-flex flex-align-center"
+        style={{ width: "90%", gap: 30 }}
+      >
+        <div style={{ width: 850 }}>
+          <Text textStyle={"medium"}>개선사항</Text>
+        </div>
+        {improvementList.map((item, index) => {
+          return (
+            <ImprovementBox
+              key={index}
+              content={item.content}
+              iconType={item.iconType}
+              title={item.title}
+            />
+          );
+        })}
+      </div>
+      <div style={{ height: 30 }}></div>
+      {/* 긴 분석내용 부분 */}
+      {analysisContent && (
+        <div className="bigcard vertical-flex" style={{ width: "90%" }}>
+          <Text>{analysisContent}</Text>
+        </div>
+      )}
+      <div style={{ height: 30 }}></div>
     </div>
   );
 };
