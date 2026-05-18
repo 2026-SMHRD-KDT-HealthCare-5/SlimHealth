@@ -47,19 +47,6 @@ const Prediction = () => {
   //긴 분석내용 부분
   const [analysisContent, setAnalysisContent] = useState("");
 
-  //api 연결 부분 필요
-  useEffect(() => {
-    const fetchData = async () => {
-      await Promise.all([
-        fetchSummaryResult(),
-        fetchKPIPrediction(),
-        fetchImprovementList(),
-        fetchAnalysisContent(),
-      ]);
-    };
-    fetchData();
-  }, []);
-
   const handleChangeSlider = (value, isSetResult) => {
     setSliderValue(value);
     setCurrentSliderImage(
@@ -122,6 +109,19 @@ const Prediction = () => {
       console.log(e);
     }
   };
+
+  //api 연결 부분 필요
+  useEffect(() => {
+    const fetchData = async () => {
+      await Promise.all([
+        fetchSummaryResult(),
+        fetchKPIPrediction(),
+        fetchImprovementList(),
+        fetchAnalysisContent(),
+      ]);
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="contentContainer">
