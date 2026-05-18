@@ -163,10 +163,10 @@ const Prediction = () => {
           {/* 5대 지표 예측 부분 */}
           <div className="horizontal-flex">
             <div className="horizontal-grid-3">
-              {kpiResultList.map((item, index) => {
+              {kpiResultList.map((item) => {
                 return (
                   <ResultBox
-                    key={index}
+                    key={item.key}
                     currentValue={item.currentValue}
                     predictionValue={item.predictionValue}
                     title={item.title}
@@ -202,10 +202,10 @@ const Prediction = () => {
         <div style={{ width: 850 }}>
           <Text textStyle={"medium"}>개선사항</Text>
         </div>
-        {improvementList.map((item, index) => {
+        {improvementList.map((item) => {
           return (
             <ImprovementBox
-              key={index}
+              key={item.id}
               content={item.content}
               iconType={item.iconType}
               title={item.title}
