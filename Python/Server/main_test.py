@@ -6,8 +6,8 @@ import pandas as pd
 app = FastAPI()
 
 # pkl 파일명을 새로 학습한 파일로 변경 (괄호 없는 이름 권장)
-models  = joblib.load("health_models_20260515_v2.pkl")
-results = joblib.load("health_model_scores_20260515_v2.pkl")
+models  = joblib.load("health_models_v4.pkl")
+results = joblib.load("health_model_scores_v4.pkl")
 
 class UserInput(BaseModel):
     gender: int
