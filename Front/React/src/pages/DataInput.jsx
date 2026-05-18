@@ -146,6 +146,15 @@ const DataInput = () => {
     }
   };
 
+  const handleSaveDataDialog = () => {
+    openDialog(
+      "데이터 저장", //title
+      "이 데이터로 저장하시겠습니까?", //content
+      true, //isCancelButton
+      handleSaveData, //onConfirmClick
+    );
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -213,7 +222,10 @@ const DataInput = () => {
           </div>
           <div style={{ height: 30 }}></div>
           <div className="horizontal-flex flex-align-center">
-            <Button isDisabled={isSaveButtonDisable} onClick={handleSaveData}>
+            <Button
+              isDisabled={isSaveButtonDisable}
+              onClick={handleSaveDataDialog}
+            >
               건강 데이터 저장
             </Button>
           </div>

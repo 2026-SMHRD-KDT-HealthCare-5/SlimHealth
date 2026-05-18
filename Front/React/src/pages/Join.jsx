@@ -79,6 +79,15 @@ const Join = () => {
     }
   };
 
+  const openJoinDialog = () => {
+    openDialog(
+      "회원가입 확인", //title
+      "정말 이 정보로 회원가입하시겠습니까?", //content
+      true, //isCancelButton
+      handleJoin, //onConfirmClick
+    );
+  };
+
   //회원가입 인풋 체크
   const checkJoinAble = () => {
     return (
@@ -169,7 +178,7 @@ const Join = () => {
           value={phoneNumber}
         />
       </div>
-      <Button isDisabled={!checkJoinAble()} onClick={handleJoin}>
+      <Button isDisabled={!checkJoinAble()} onClick={openJoinDialog}>
         회원가입 완료
       </Button>
     </div>
