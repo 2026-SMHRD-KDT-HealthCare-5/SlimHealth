@@ -5,6 +5,7 @@ export const ResultBox = ({
   title,
   titleColor,
   backgroundColor,
+  isShadow,
   unit,
   currentValue,
   predictionValue,
@@ -15,7 +16,9 @@ export const ResultBox = ({
       style={{ backgroundColor: backgroundColor || "white" }}
     >
       <div style={{ color: titleColor }}>
-        <Text textStyle={"bold"}>{title}</Text>
+        <Text textStyle={"bold"} isShadow={isShadow}>
+          {title}
+        </Text>
       </div>
       <div className="resultValueBox">
         <Text textStyle={"medium"}>{`현재 : ${currentValue} ${unit}`}</Text>

@@ -34,14 +34,6 @@ const Prediction = () => {
   const [currentSliderImage, setCurrentSliderImage] = useState(
     sliderImageList[0],
   );
-  const handleChangeSlider = (value) => {
-    setSliderValue(value);
-    setCurrentSliderImage(
-      sliderImageList[
-        parseInt(value / ((sliderWidth + 1) / sliderImageList.length))
-      ],
-    );
-  };
 
   //요약 부분
   const [summary, setSummary] = useState(null);
@@ -68,6 +60,27 @@ const Prediction = () => {
     fetchData();
   }, []);
 
+  const handleChangeSlider = (value, isSetResult) => {
+    setSliderValue(value);
+    setCurrentSliderImage(
+      sliderImageList[
+        parseInt(value / ((sliderWidth + 1) / sliderImageList.length))
+      ],
+    );
+
+    //예측 부분 조정
+    if (isSetResult) {
+      setKpiResultList(
+        kpiResultList.map((item) => {
+          return {
+            ...item,
+            predictionValue: parseInt(80 + value),
+          };
+        }),
+      );
+    }
+  };
+
   //요약 박스 설정
   const fetchSummaryResult = async () => {
     try {
@@ -84,7 +97,7 @@ const Prediction = () => {
       const data = await getKPIPredictionApi();
       //5대지표 예측결과 설정
       setKpiResultList(data.result);
-      handleChangeSlider(data.sliderValue);
+      handleChangeSlider(data.sliderValue, false);
     } catch (e) {
       console.log(e);
     }
@@ -130,7 +143,9 @@ const Prediction = () => {
                   style={{ width: 160, height: 361 }}
                 />
                 <Slider
-                  onChange={handleChangeSlider}
+                  onChange={(value) => {
+                    handleChangeSlider(value, true);
+                  }}
                   value={sliderValue}
                   maxValue={140}
                   minValue={70}
@@ -162,6 +177,7 @@ const Prediction = () => {
                       title={item.title}
                       titleColor={item.titleColor}
                       backgroundColor={item.backgroundColor}
+                      isShadow={item.isShadow}
                       unit={item.unit}
                     />
                   );
