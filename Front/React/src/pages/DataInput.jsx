@@ -185,6 +185,9 @@ const DataInput = () => {
       <Text textStyle={"bold"}>
         또는 진단서 파일을 넣고 OCR로 입력할 수도 있습니다.
       </Text>
+      <Text textStyle={"bold"}>
+        (단, OCR 입력의 경우 음주여부와 흡연여부는 인식되지 않습니다.)
+      </Text>
       <div style={{ height: 30 }}></div>
       <div className="horizontal-flex">
         {/* 데이터 입력 부분 */}
