@@ -12,16 +12,19 @@ import mainImage from "../assets/mainImage.png";
 
 const guideList = [
   {
+    key: "heart",
     iconType: "heart",
     title: "건강 데이터 입력",
     content: "키, 나이, 체중 및 대사증후군 5대 요소를 간편하게 입력하세요",
   },
   {
+    key: "arrow",
     iconType: "arrow",
     title: "AI 건강 예측",
     content: "머신러닝 알고리즘으로 건강 상태를 예측하고 시각화합니다",
   },
   {
+    key: "shield",
     iconType: "shield",
     title: "개선 가이드",
     content: "개인 맞춤형 건강 개선 방안을 제공받으세요",
@@ -29,8 +32,6 @@ const guideList = [
 ];
 
 const Main = () => {
-  const { userInfo } = useContext(Context);
-
   return (
     <div className="contentContainer">
       {/* 타이틀 부분 */}
@@ -53,10 +54,10 @@ const Main = () => {
           className="horizontal-flex flex-align-center"
           style={{ gap: 50, padding: 50 }}
         >
-          {guideList.map((item, index) => {
+          {guideList.map((item) => {
             return (
               <MainGuide
-                key={index}
+                key={item.key}
                 content={item.content}
                 iconType={item.iconType}
                 title={item.title}
