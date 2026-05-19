@@ -22,6 +22,7 @@ export const getHealthDataApi = () => {
       triglyceride: 20,
       isDrink: true,
       isSmoke: false,
+      gender: "Male",
     });
   });
 };
@@ -39,6 +40,7 @@ export const ocrInputApi = (files) => {
       diastolicBp: 50,
       bloodGlucose: 60,
       triglyceride: 30,
+      gender: "Female",
     });
   });
 };

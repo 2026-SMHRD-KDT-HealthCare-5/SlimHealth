@@ -12,6 +12,10 @@ import {
 import Context from "../context/context";
 import { inputFixWidth } from "../utils/utils";
 import { CheckBox } from "../components/CheckBox/CheckBox";
+import { RadioButton } from "../components/RadioButton/RadioButton";
+
+const MaleCode = "Male";
+const FemaleCode = "Female";
 
 const inputFields = [
   {
@@ -77,6 +81,7 @@ const DataInput = () => {
     triglyceride: 0,
   });
 
+  const [gender, setGender] = useState("");
   const [isDrink, setIsDrink] = useState(false);
   const [isSmoke, setIsSmoke] = useState(false);
 
@@ -116,18 +121,20 @@ const DataInput = () => {
       const data = await ocrInputApi(files);
 
       setFormData(data);
+      setGender(data.gender);
     } catch (e) {
       console.log(e);
     }
   };
 
   //저장 버튼 활성화 여부
-  const isSaveButtonDisable = inputFields.some((item) => !formData[item.key]);
+  const isSaveButtonDisable =
+    inputFields.some((item) => !formData[item.key]) || !gender;
 
   //데이터 저장 버튼
   const handleSaveData = async () => {
     try {
-      await saveHealthDataApi({ ...formData, isDrink, isSmoke });
+      await saveHealthDataApi({ ...formData, isDrink, isSmoke, gender });
 
       openDialog(
         "데이터 저장 성공", //title
@@ -147,7 +154,7 @@ const DataInput = () => {
 
   const handleSaveDataDialog = () => {
     openDialog(
-      "데이터 저장", //title
+      "데이터 저장 확인", //title
       "이 데이터로 저장하시겠습니까?", //content
       true, //isCancelButton
       handleSaveData, //onConfirmClick
@@ -163,6 +170,7 @@ const DataInput = () => {
         setFormData(data);
         setIsDrink(data.isDrink);
         setIsSmoke(data.isSmoke);
+        setGender(data.gender);
       } catch (e) {
         console.log(e);
       }
@@ -193,6 +201,28 @@ const DataInput = () => {
       <div className="horizontal-flex">
         {/* 데이터 입력 부분 */}
         <div className="vertical-flex">
+          <div
+            className="horizontal-flex flex-align-end"
+            style={{ alignItems: "center", gap: 30 }}
+          >
+            <Text>성별</Text>
+            <div className="horizontal-flex" style={{ gap: 30 }}>
+              <RadioButton
+                isChecked={gender === MaleCode}
+                onClick={() => {
+                  setGender(gender === MaleCode ? "" : MaleCode);
+                }}
+                title="남성"
+              />
+              <RadioButton
+                isChecked={gender === FemaleCode}
+                onClick={() => {
+                  setGender(gender === FemaleCode ? "" : FemaleCode);
+                }}
+                title="여성"
+              />
+            </div>
+          </div>
           {inputFields.map((item) => {
             return (
               <Input
@@ -237,21 +267,21 @@ const DataInput = () => {
         <div style={{ width: 120 }}></div>
         {/* ocr 입력 부분 */}
         <div className="vertical-flex">
-          <div style={{ width: 479, height: 479 }}>
+          <div style={{ width: 509, height: 509 }}>
             {ocrImages && (
               <>
                 {ocrImages[0].type === "application/pdf" ? (
                   <iframe
                     src={URL.createObjectURL(ocrImages[0])}
-                    width={459}
-                    height={459}
+                    width={489}
+                    height={489}
                     title="pdf-viewer"
                   />
                 ) : (
                   <img
                     src={URL.createObjectURL(ocrImages[0])}
                     alt="preview"
-                    style={{ width: 459, height: 459, objectFit: "cover" }}
+                    style={{ width: 489, height: 489, objectFit: "cover" }}
                   />
                 )}
               </>
