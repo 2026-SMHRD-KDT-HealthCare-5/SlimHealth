@@ -88,7 +88,7 @@ const DataInput = () => {
   };
 
   //ocr 이미지
-  const [ocrImage, setOcrImage] = useState(null);
+  const [ocrImages, setOcrImages] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -99,21 +99,21 @@ const DataInput = () => {
 
   // 파일 선택 시 실행
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const files = Array.from(e.target.files || []);
 
-    if (file) {
-      setOcrImage(file);
+    if (files) {
+      setOcrImages(files);
 
       //ocr 입력 api 연결
-      handleOcrInput(file);
+      handleOcrInput(files);
     }
   };
 
   //ocr로 입력
-  const handleOcrInput = async (file) => {
+  const handleOcrInput = async (files) => {
     //ocr 입력 api 연결
     try {
-      const data = await ocrInputApi(file);
+      const data = await ocrInputApi(files);
 
       setFormData(data);
     } catch (e) {
@@ -172,11 +172,13 @@ const DataInput = () => {
 
   useEffect(() => {
     return () => {
-      if (ocrImage) {
-        URL.revokeObjectURL(ocrImage);
+      if (ocrImages) {
+        ocrImages.forEach((item) => {
+          URL.revokeObjectURL(item.preview);
+        });
       }
     };
-  }, [ocrImage]);
+  }, [ocrImages]);
 
   return (
     <div className="contentContainer">
@@ -236,18 +238,18 @@ const DataInput = () => {
         {/* ocr 입력 부분 */}
         <div className="vertical-flex">
           <div style={{ width: 479, height: 479 }}>
-            {ocrImage && (
+            {ocrImages && (
               <>
-                {ocrImage.type === "application/pdf" ? (
+                {ocrImages[0].type === "application/pdf" ? (
                   <iframe
-                    src={URL.createObjectURL(ocrImage)}
+                    src={URL.createObjectURL(ocrImages[0])}
                     width={459}
                     height={459}
                     title="pdf-viewer"
                   />
                 ) : (
                   <img
-                    src={URL.createObjectURL(ocrImage)}
+                    src={URL.createObjectURL(ocrImages[0])}
                     alt="preview"
                     style={{ width: 459, height: 459, objectFit: "cover" }}
                   />
@@ -260,6 +262,7 @@ const DataInput = () => {
           </div>
           <input
             type="file"
+            multiple
             accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.bmp"
             ref={fileInputRef}
             style={{ display: "none" }}

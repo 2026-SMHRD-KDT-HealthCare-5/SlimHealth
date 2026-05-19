@@ -27,7 +27,7 @@ export const getHealthDataApi = () => {
 };
 
 //ocr 데이터 입력 api
-export const ocrInputApi = (file) => {
+export const ocrInputApi = (files) => {
   return new Promise((resolve) => {
     resolve({
       userHeight: 170,
