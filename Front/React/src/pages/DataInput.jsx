@@ -102,8 +102,7 @@ const DataInput = () => {
     const file = e.target.files[0];
 
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setOcrImage(imageUrl);
+      setOcrImage(file);
 
       //ocr 입력 api 연결
       handleOcrInput(file);
@@ -238,7 +237,22 @@ const DataInput = () => {
         <div className="vertical-flex">
           <div style={{ width: 479, height: 479 }}>
             {ocrImage && (
-              <img src={ocrImage} style={{ width: 459, height: 459 }} />
+              <>
+                {ocrImage.type === "application/pdf" ? (
+                  <iframe
+                    src={URL.createObjectURL(ocrImage)}
+                    width={459}
+                    height={459}
+                    title="pdf-viewer"
+                  />
+                ) : (
+                  <img
+                    src={URL.createObjectURL(ocrImage)}
+                    alt="preview"
+                    style={{ width: 459, height: 459, objectFit: "cover" }}
+                  />
+                )}
+              </>
             )}
           </div>
           <div className="horizontal-flex flex-align-center">
@@ -246,7 +260,7 @@ const DataInput = () => {
           </div>
           <input
             type="file"
-            accept="image/*"
+            accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.bmp"
             ref={fileInputRef}
             style={{ display: "none" }}
             onChange={handleFileChange}
