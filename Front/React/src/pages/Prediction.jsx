@@ -78,18 +78,6 @@ const Prediction = () => {
     }
   };
 
-  //5대지표 예측결과 및 슬라이더 초기값 설정
-  const fetchKPIPrediction = async () => {
-    try {
-      const data = await getKPIPredictionApi();
-      //5대지표 예측결과 설정
-      setKpiResultList(data.result);
-      handleChangeSlider(data.sliderValue, false);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
   //개선사항 설정
   const fetchImprovementList = async () => {
     try {
@@ -112,6 +100,26 @@ const Prediction = () => {
 
   //api 연결 부분 필요
   useEffect(() => {
+    //5대지표 예측결과 및 슬라이더 초기값 설정
+    const fetchKPIPrediction = async () => {
+      try {
+        const data = await getKPIPredictionApi();
+        //5대지표 예측결과 설정
+        setKpiResultList(data.result);
+
+        setSliderValue(data.sliderValue);
+        setCurrentSliderImage(
+          sliderImageList[
+            parseInt(
+              data.sliderValue / ((sliderWidth + 1) / sliderImageList.length),
+            )
+          ],
+        );
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
     const fetchData = async () => {
       await Promise.all([
         fetchSummaryResult(),
