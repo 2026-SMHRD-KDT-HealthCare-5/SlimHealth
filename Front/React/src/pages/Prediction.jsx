@@ -18,15 +18,12 @@ import character3 from "../assets/character3.png";
 import character4 from "../assets/character4.png";
 import character5 from "../assets/character5.png";
 import { EBarChart } from "../components/EBarChart/EBarChart";
-
-//슬라이더 이미지 url은 나중에 정해지면 변경하기
-const sliderImageList = [
-  character1,
-  character2,
-  character3,
-  character4,
-  character5,
-];
+import {
+  getSliderImageIndex,
+  sliderImageList,
+  sliderValueToWeight,
+  weightToSliderValue,
+} from "../utils/utils";
 
 const sliderMaxValue = 140;
 const sliderMinValue = 71;
@@ -54,15 +51,9 @@ const Prediction = () => {
   const handleChangeSlider = (value, isSetResult) => {
     setSliderValue(value);
 
-    setCurrentSliderImage(
-      sliderImageList[
-        parseInt(value / ((sliderWidth + 1) / sliderImageList.length))
-      ],
-    );
+    setCurrentSliderImage(sliderImageList[getSliderImageIndex(value)]);
 
-    const weight = parseInt(
-      sliderMaxValue - (value / sliderWidth) * sliderMinValue,
-    );
+    const weight = sliderValueToWeight(value, sliderMaxValue, sliderMinValue);
     setUserWeight(weight);
 
     //예측 부분 조정
@@ -120,16 +111,14 @@ const Prediction = () => {
         const weight = data.weight;
         setUserWeight(weight);
 
-        const sliderVal =
-          ((sliderMaxValue - weight) / (sliderMaxValue - sliderMinValue)) *
-          sliderWidth;
+        const sliderVal = weightToSliderValue(
+          weight,
+          sliderMaxValue,
+          sliderMinValue,
+        );
         setSliderValue(sliderVal);
 
-        setCurrentSliderImage(
-          sliderImageList[
-            parseInt(sliderVal / ((sliderWidth + 1) / sliderImageList.length))
-          ],
-        );
+        setCurrentSliderImage(sliderImageList[getSliderImageIndex(sliderVal)]);
       } catch (e) {
         console.log(e);
       }
