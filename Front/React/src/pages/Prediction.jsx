@@ -28,9 +28,13 @@ const sliderImageList = [
   character5,
 ];
 
+const sliderMaxValue = 140;
+const sliderMinValue = 71;
+
 const Prediction = () => {
   //슬라이더 부분
   const [sliderValue, setSliderValue] = useState(0);
+  const [userWeight, setUserWeight] = useState(0);
   const [currentSliderImage, setCurrentSliderImage] = useState(
     sliderImageList[0],
   );
@@ -49,11 +53,17 @@ const Prediction = () => {
 
   const handleChangeSlider = (value, isSetResult) => {
     setSliderValue(value);
+
     setCurrentSliderImage(
       sliderImageList[
         parseInt(value / ((sliderWidth + 1) / sliderImageList.length))
       ],
     );
+
+    const weight = parseInt(
+      sliderMaxValue - (value / sliderWidth) * sliderMinValue,
+    );
+    setUserWeight(weight);
 
     //예측 부분 조정
     if (isSetResult) {
@@ -107,12 +117,17 @@ const Prediction = () => {
         //5대지표 예측결과 설정
         setKpiResultList(data.result);
 
-        setSliderValue(data.sliderValue);
+        const weight = data.weight;
+        setUserWeight(weight);
+
+        const sliderVal =
+          ((sliderMaxValue - weight) / (sliderMaxValue - sliderMinValue)) *
+          sliderWidth;
+        setSliderValue(sliderVal);
+
         setCurrentSliderImage(
           sliderImageList[
-            parseInt(
-              data.sliderValue / ((sliderWidth + 1) / sliderImageList.length),
-            )
+            parseInt(sliderVal / ((sliderWidth + 1) / sliderImageList.length))
           ],
         );
       } catch (e) {
@@ -150,9 +165,11 @@ const Prediction = () => {
                   handleChangeSlider(value, true);
                 }}
                 value={sliderValue}
-                maxValue={140}
-                minValue={70}
+                maxValue={sliderMaxValue}
+                minValue={sliderMinValue}
               />
+              <div style={{ height: 10 }}></div>
+              <Text>{`예측 체중 : ${userWeight}kg`}</Text>
             </div>
             <div style={{ width: 30 }}></div>
             {/* 건강 요약 부분 */}
@@ -167,7 +184,7 @@ const Prediction = () => {
               )}
             </div>
           </div>
-          <div style={{ height: 20 }}></div>
+          <div style={{ height: 10 }}></div>
           {/* 5대 지표 예측 부분 */}
           <div className="horizontal-flex">
             <div className="horizontal-grid-3">

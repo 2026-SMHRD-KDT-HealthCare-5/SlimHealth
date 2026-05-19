@@ -101,7 +101,7 @@ export const getKPIPredictionApi = () => {
           predictionValue: 50,
         },
       ],
-      sliderValue: 80,
+      weight: 120,
     });
   });
 };

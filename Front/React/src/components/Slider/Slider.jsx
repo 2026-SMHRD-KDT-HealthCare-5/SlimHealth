@@ -42,7 +42,7 @@ export const Slider = ({ value, onChange, maxValue, minValue }) => {
     };
   });
 
-  const centerValue = (maxValue + minValue) / 2;
+  const centerValue = parseInt((maxValue + minValue) / 2);
   const valueArray = [maxValue, centerValue, minValue];
 
   return (

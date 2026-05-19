@@ -17,6 +17,8 @@ import { RadioButton } from "../components/RadioButton/RadioButton";
 const MaleCode = "Male";
 const FemaleCode = "Female";
 
+const ocrImageSize = 489;
+
 const inputFields = [
   {
     title: "키",
@@ -267,21 +269,25 @@ const DataInput = () => {
         <div style={{ width: 120 }}></div>
         {/* ocr 입력 부분 */}
         <div className="vertical-flex">
-          <div style={{ width: 509, height: 509 }}>
+          <div style={{ width: ocrImageSize + 20, height: ocrImageSize + 20 }}>
             {ocrImages && (
               <>
                 {ocrImages[0].type === "application/pdf" ? (
                   <iframe
                     src={URL.createObjectURL(ocrImages[0])}
-                    width={489}
-                    height={489}
+                    width={ocrImageSize}
+                    height={ocrImageSize}
                     title="pdf-viewer"
                   />
                 ) : (
                   <img
                     src={URL.createObjectURL(ocrImages[0])}
                     alt="preview"
-                    style={{ width: 489, height: 489, objectFit: "cover" }}
+                    style={{
+                      width: ocrImageSize,
+                      height: ocrImageSize,
+                      objectFit: "cover",
+                    }}
                   />
                 )}
               </>
