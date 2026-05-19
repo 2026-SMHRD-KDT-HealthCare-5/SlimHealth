@@ -5,7 +5,6 @@ import pandas as pd
 
 app = FastAPI()
 
-# pkl 파일명을 새로 학습한 파일로 변경 (괄호 없는 이름 권장)
 models  = joblib.load("health_models_v4.pkl")
 results = joblib.load("health_model_scores_v4.pkl")
 
@@ -25,13 +24,15 @@ class UserInput(BaseModel):
     hdl: float
 
 # 공통 설정
+# (delta_key, input_key, output_key, unit)
+# output_key: 영문 키 사용 → React에서 data.waist, data.sbp 등으로 접근
 METRIC_INFO = [
-    ("delta_waist", "waist", "허리둘레",   "cm"),
-    ("delta_sbp",   "sbp",   "수축기혈압", "mmHg"),
-    ("delta_dbp",   "dbp",   "이완기혈압", "mmHg"),
-    ("delta_bs",    "bs",    "공복혈당",   "mg/dL"),
-    ("delta_tg",    "tg",    "중성지방",   "mg/dL"),
-    ("delta_hdl",   "hdl",   "HDL",        "mg/dL"),
+    ("delta_waist", "waist", "waist", "cm"),
+    ("delta_sbp",   "sbp",   "sbp",   "mmHg"),
+    ("delta_dbp",   "dbp",   "dbp",   "mmHg"),
+    ("delta_bs",    "bs",    "bs",    "mg/dL"),
+    ("delta_tg",    "tg",    "tg",    "mg/dL"),
+    ("delta_hdl",   "hdl",   "hdl",   "mg/dL"),
 ]
 LOWER_BOUNDS = {
     "delta_waist": -40, "delta_sbp": -60, "delta_dbp": -40,
@@ -70,19 +71,19 @@ def build_inp(data: UserInput, weight_diff: float) -> pd.DataFrame:
     }]).astype("float32")
 
 def predict_metrics(inp: pd.DataFrame, data: UserInput) -> dict:
-    """6개 지표 예측 후 딕셔너리 반환"""
+    """6개 지표 예측 후 영문 키 딕셔너리 반환"""
     result = {}
-    for key, pre_key, name, unit in METRIC_INFO:
-        curr      = float(getattr(data, pre_key))
-        delta_raw = float(models[key].predict(inp)[0])
-        delta     = max(delta_raw, LOWER_BOUNDS[key])
-        if key in UPPER_BOUNDS:
-            delta = min(delta, UPPER_BOUNDS[key])
-        result[name] = {
+    for delta_key, input_key, output_key, unit in METRIC_INFO:
+        curr      = float(getattr(data, input_key))
+        delta_raw = float(models[delta_key].predict(inp)[0])
+        delta     = max(delta_raw, LOWER_BOUNDS[delta_key])
+        if delta_key in UPPER_BOUNDS:
+            delta = min(delta, UPPER_BOUNDS[delta_key])
+        result[output_key] = {
             "current":   curr,
             "predicted": round(curr + delta, 1),
             "delta":     round(delta, 1),
-            "mae":       round(results[key]["mae"], 1),
+            "mae":       round(results[delta_key]["mae"], 1),
             "unit":      unit,
         }
     return result
@@ -114,18 +115,17 @@ async def predict_all(data: UserInput):
 
     for kg in range(1, max_loss_kg + 1):
         target = data.weight - kg
-        if target < 45:   # 체중 하한 45kg
+        if target < 45:
             break
-
         inp = build_inp(data, float(kg))
         predictions[f"{kg}kg"] = predict_metrics(inp, data)
 
     return {
-        "predictions":   predictions,   # 1kg ~ max_loss_kg 전체
-        "max_loss_kg":   max_loss_kg,   # 슬라이더 최대값
+        "predictions":   predictions,
+        "max_loss_kg":   max_loss_kg,
         "current_bmi":   round(bmi, 1),
-        "normal_weight": normal_weight, # 정상체중 상한 (BMI 24.9)
-        "to_normal":     to_normal,     # 정상체중까지 남은 kg
+        "normal_weight": normal_weight,
+        "to_normal":     to_normal,
     }
 
 
