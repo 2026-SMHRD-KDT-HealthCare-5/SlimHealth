@@ -181,7 +181,7 @@ const Prediction = () => {
           <div style={{ height: 10 }}></div>
           {/* 5대 지표 예측 부분 */}
           <div className="horizontal-flex">
-            <div className="horizontal-grid-2">
+            <div className="horizontal-grid-3">
               {kpiResultList.map((item) => {
                 return (
                   <ResultBox

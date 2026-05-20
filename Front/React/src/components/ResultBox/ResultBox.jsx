@@ -18,7 +18,7 @@ export const ResultBox = ({
     >
       <div
         className="horizontal-flex flex-align-center"
-        style={{ gap: 30, width: "100%" }}
+        style={{ gap: 10, width: "100%" }}
       >
         <div style={{ color: titleColor }}>
           <Text textStyle={"bold"} isShadow={isShadow}>
