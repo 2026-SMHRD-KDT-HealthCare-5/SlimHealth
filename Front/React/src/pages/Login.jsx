@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { TopNavigation } from "../components/TopNavigation";
 import { Text } from "../components/Text/Text";
 import { Input } from "../components/Input/Input";
@@ -8,9 +8,10 @@ import { Button } from "../components/Button/Button";
 import { useNavigate } from "react-router-dom";
 import Context from "../context/context";
 import { loginApi } from "../api/userApi";
+import { joinPath } from "../App";
 
 const Login = () => {
-  const { setUserInfo, processLogin, openDialog, closeDialog } =
+  const { setUserInfo, processLogin, processLogout, openDialog, closeDialog } =
     useContext(Context);
 
   const [account, setAccount] = useState("");
@@ -36,45 +37,46 @@ const Login = () => {
     }
   };
 
+  useEffect(() => {
+    processLogout();
+  }, [processLogout]);
+
   return (
-    <div className="mainContainer">
-      <TopNavigation isBackButton menuList={[]} />
-      <div className="contentContainer" style={{ gap: 30 }}>
-        <Text textStyle={"bold"}>로그인</Text>
-        <Input
-          fixWidth={30}
-          maxLength={30}
-          onChange={(e) => {
-            setAccount(e.target.value);
+    <div className="contentContainer" style={{ gap: 30 }}>
+      <Text textStyle={"bold"}>로그인</Text>
+      <Input
+        fixWidth={30}
+        maxLength={30}
+        onChange={(e) => {
+          setAccount(e.target.value);
+        }}
+        placeholder="아이디"
+        title="ID"
+        type="text"
+        value={account}
+      />
+      <Input
+        fixWidth={30}
+        maxLength={30}
+        onChange={(e) => {
+          setPassword(e.target.value);
+        }}
+        placeholder="비밀번호"
+        title="PW"
+        type="password"
+        value={password}
+      />
+      <div className="horizontal-flex">
+        <OutlinedButton
+          onClick={() => {
+            nav(joinPath);
           }}
-          placeholder="아이디"
-          title="ID"
-          type="text"
-          value={account}
-        />
-        <Input
-          fixWidth={30}
-          maxLength={30}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-          placeholder="비밀번호"
-          title="PW"
-          type="password"
-          value={password}
-        />
-        <div className="horizontal-flex">
-          <OutlinedButton
-            onClick={() => {
-              nav("/join");
-            }}
-          >
-            회원가입
-          </OutlinedButton>
-          <Button isDisabled={!(account && password)} onClick={handleLogin}>
-            로그인
-          </Button>
-        </div>
+        >
+          회원가입
+        </OutlinedButton>
+        <Button isDisabled={!(account && password)} onClick={handleLogin}>
+          로그인
+        </Button>
       </div>
     </div>
   );

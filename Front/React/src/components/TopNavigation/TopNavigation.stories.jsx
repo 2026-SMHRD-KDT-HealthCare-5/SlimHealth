@@ -7,7 +7,15 @@ export default {
   argTypes: {
     menuList: {
       control: "check",
-      options: ["login", "join", "main", "dataInput", "prediction", "logout"],
+      options: [
+        "login",
+        "join",
+        "main",
+        "dataInputHistory",
+        "dataInput",
+        "prediction",
+        "logout",
+      ],
     },
   },
   decorators: [

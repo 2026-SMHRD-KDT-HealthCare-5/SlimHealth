@@ -13,7 +13,7 @@ export const Dialog = ({ title, content, isCancelButton, onConfirmClick }) => {
     <div className="modal-backdrop" onClick={closeDialog}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <Text textStyle={"bold"}>{title}</Text>
-        <Text>{content}</Text>
+        <Text align={"center"}>{content}</Text>
         <div className="horizontal-flex">
           {isCancelButton && (
             <OutlinedButton onClick={closeDialog}>취소</OutlinedButton>

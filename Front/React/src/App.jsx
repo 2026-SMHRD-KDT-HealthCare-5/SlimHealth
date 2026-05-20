@@ -8,6 +8,15 @@ import Login from "./pages/Login";
 import Join from "./pages/Join";
 import DataInput from "./pages/DataInput";
 import Prediction from "./pages/Prediction";
+import MainLayout from "./pages/layout/MainLayout";
+import CommonLayout from "./pages/layout/CommonLayout";
+import DataInputHistory from "./pages/DataInputHistory";
+
+export const loginPath = "/login";
+export const joinPath = "/join";
+export const dataInputPath = "/dataInput";
+export const predictionPath = "/prediction";
+export const dataInputHistoryPath = "/dataInputHistory";
 
 const AppContent = () => {
   const { isDialogOpen, dialogInfo } = useContext(Context);
@@ -15,16 +24,23 @@ const AppContent = () => {
   return (
     <div>
       <Routes>
-        {/* 메인 페이지 */}
-        <Route path="/" element={<Main />} />
-        {/* 로그인 페이지 */}
-        <Route path="/login" element={<Login />} />
-        {/* 회원가입 페이지 */}
-        <Route path="/join" element={<Join />} />
-        {/* 건강 데이터 입력 페이지 */}
-        <Route path="/dataInput" element={<DataInput />} />
-        {/* 예측 페이지 */}
-        <Route path="/prediction" element={<Prediction />} />
+        <Route element={<MainLayout />}>
+          {/* 메인 페이지 */}
+          <Route path="/" element={<Main />} />
+        </Route>
+
+        <Route element={<CommonLayout />}>
+          {/* 로그인 페이지 */}
+          <Route path={loginPath} element={<Login />} />
+          {/* 회원가입 페이지 */}
+          <Route path={joinPath} element={<Join />} />
+          {/* 건강 데이터 입력 페이지 */}
+          <Route path={dataInputPath} element={<DataInput />} />
+          {/* 예측 페이지 */}
+          <Route path={predictionPath} element={<Prediction />} />
+          {/* 데이터 입력 내역 조회 페이지 */}
+          <Route path={dataInputHistoryPath} element={<DataInputHistory />} />
+        </Route>
       </Routes>
 
       {isDialogOpen && (

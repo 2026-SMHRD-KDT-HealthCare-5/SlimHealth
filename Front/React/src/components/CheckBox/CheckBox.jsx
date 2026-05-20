@@ -3,6 +3,7 @@ import "../../index.css";
 import checkbox from "../../assets/checkbox.png";
 import unchecked from "../../assets/unchecked.png";
 import { Text } from "../Text/Text";
+import { checkBoxSize } from "../../utils/utils";
 
 export const CheckBox = ({ title, isChecked, onClick }) => {
   return (
@@ -10,7 +11,7 @@ export const CheckBox = ({ title, isChecked, onClick }) => {
       <Text textStyle={"medium"}>{title}</Text>
       <img
         src={isChecked ? checkbox : unchecked}
-        style={{ width: 30, height: 30 }}
+        style={{ width: checkBoxSize, height: checkBoxSize }}
       />
     </div>
   );

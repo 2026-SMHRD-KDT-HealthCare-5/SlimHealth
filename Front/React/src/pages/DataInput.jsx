@@ -3,65 +3,28 @@ import { TopNavigation } from "../components/TopNavigation";
 import { Text } from "../components/Text/Text";
 import { Input } from "../components/Input/Input";
 import { Button } from "../components/Button/Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   getHealthDataApi,
   ocrInputApi,
   saveHealthDataApi,
 } from "../api/healthDataApi";
 import Context from "../context/context";
-import { inputFixWidth } from "../utils/utils";
+import { inputFields, inputFixWidth } from "../utils/utils";
 import { CheckBox } from "../components/CheckBox/CheckBox";
+import { RadioButton } from "../components/RadioButton/RadioButton";
+import { predictionPath } from "../App";
 
-const inputFields = [
-  {
-    title: "키",
-    placeholder: "현재 키(cm) 입력",
-    key: "userHeight",
-  },
-  {
-    title: "나이",
-    placeholder: "현재 나이 입력",
-    key: "age",
-  },
-  {
-    title: "체중",
-    placeholder: "현재 체중(kg) 입력",
-    key: "userWeight",
-  },
-  {
-    title: "허리둘레",
-    placeholder: "현재 허리둘레(cm) 입력",
-    key: "waistLine",
-  },
-  {
-    title: "HDL 콜레스테롤",
-    placeholder: "현재 HDL 콜레스테롤 수치(mg/dl) 입력",
-    key: "cholesterol",
-  },
-  {
-    title: "수축기 혈압",
-    placeholder: "현재 수축기 혈압(mmHg) 입력",
-    key: "systolicBp",
-  },
-  {
-    title: "이완기 혈압",
-    placeholder: "현재 이완기 혈압(mmHg) 입력",
-    key: "diastolicBp",
-  },
-  {
-    title: "공복시 혈당",
-    placeholder: "현재 혈당(mg/dl) 입력",
-    key: "bloodGlucose",
-  },
-  {
-    title: "중성지방",
-    placeholder: "현재 중성지방(mg/dl) 입력",
-    key: "triglyceride",
-  },
-];
+const MaleCode = "Male";
+const FemaleCode = "Female";
+
+const ocrImageSize = 489;
 
 const DataInput = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const id = searchParams.get("id");
+
   const { openDialog, closeDialog } = useContext(Context);
   const nav = useNavigate();
 
@@ -77,6 +40,7 @@ const DataInput = () => {
     triglyceride: 0,
   });
 
+  const [gender, setGender] = useState("");
   const [isDrink, setIsDrink] = useState(false);
   const [isSmoke, setIsSmoke] = useState(false);
 
@@ -88,7 +52,7 @@ const DataInput = () => {
   };
 
   //ocr 이미지
-  const [ocrImage, setOcrImage] = useState(null);
+  const [ocrImages, setOcrImages] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -99,43 +63,44 @@ const DataInput = () => {
 
   // 파일 선택 시 실행
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const files = Array.from(e.target.files || []);
 
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setOcrImage(imageUrl);
+    if (files) {
+      setOcrImages(files);
 
       //ocr 입력 api 연결
-      handleOcrInput(file);
+      handleOcrInput(files);
     }
   };
 
   //ocr로 입력
-  const handleOcrInput = async (file) => {
+  const handleOcrInput = async (files) => {
     //ocr 입력 api 연결
     try {
-      const data = await ocrInputApi(file);
+      const data = await ocrInputApi(files);
 
       setFormData(data);
+      setGender(data.gender);
     } catch (e) {
       console.log(e);
     }
   };
 
   //저장 버튼 활성화 여부
-  const isSaveButtonDisable = inputFields.some((item) => !formData[item.key]);
+  const isSaveButtonDisable =
+    inputFields.some((item) => !formData[item.key]) || !gender;
 
   //데이터 저장 버튼
   const handleSaveData = async () => {
     try {
-      await saveHealthDataApi({ ...formData, isDrink, isSmoke });
+      await saveHealthDataApi({ ...formData, isDrink, isSmoke, gender, id });
 
       openDialog(
         "데이터 저장 성공", //title
         "데이터가 저장되었습니다. 해당 데이터로 바로 예측하시겠습니까?", //content
         true, //isCancelButton
         () => {
-          nav("/prediction");
+          nav(predictionPath);
           closeDialog();
         }, //onConfirmClick
       );
@@ -146,99 +111,156 @@ const DataInput = () => {
     }
   };
 
+  const handleSaveDataDialog = () => {
+    openDialog(
+      "데이터 저장 확인", //title
+      "이 데이터로 저장하시겠습니까?", //content
+      true, //isCancelButton
+      handleSaveData, //onConfirmClick
+    );
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         //이전 데이터 연동
-        const data = await getHealthDataApi();
+        const data = await getHealthDataApi(id);
 
         setFormData(data);
         setIsDrink(data.isDrink);
         setIsSmoke(data.isSmoke);
+        setGender(data.gender);
       } catch (e) {
         console.log(e);
       }
     };
     fetchData();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     return () => {
-      if (ocrImage) {
-        URL.revokeObjectURL(ocrImage);
+      if (ocrImages) {
+        ocrImages.forEach((item) => {
+          URL.revokeObjectURL(item.preview);
+        });
       }
     };
-  }, [ocrImage]);
+  }, [ocrImages]);
 
   return (
-    <div className="mainContainer">
-      <TopNavigation isBackButton menuList={[]} />
-      <div className="contentContainer">
-        <Text textStyle={"bold"}>당신의 현재 건강 데이터를 입력하세요.</Text>
-        <Text textStyle={"bold"}>
-          또는 진단서 파일을 넣고 OCR로 입력할 수도 있습니다.
-        </Text>
-        <div style={{ height: 30 }}></div>
-        <div className="horizontal-flex">
-          {/* 데이터 입력 부분 */}
-          <div className="vertical-flex">
-            {inputFields.map((item) => {
-              return (
-                <Input
-                  key={item.key}
-                  fixWidth={inputFixWidth}
-                  maxLength={30}
-                  onChange={(e) => handleChange(item.key, e.target.value)}
-                  placeholder={item.placeholder}
-                  title={item.title}
-                  type="number"
-                  value={formData[item.key]}
-                />
-              );
-            })}
-            <div style={{ height: 20 }}></div>
-            <div className="vertical-flex flex-align-center">
-              <CheckBox
-                isChecked={isDrink}
+    <div className="contentContainer">
+      <Text textStyle={"bold"}>당신의 현재 건강 데이터를 입력하세요.</Text>
+      <Text textStyle={"bold"}>
+        또는 진단서 파일을 넣고 OCR로 입력할 수도 있습니다.
+      </Text>
+      <Text textStyle={"bold"}>
+        (단, OCR 입력의 경우 음주여부와 흡연여부는 인식되지 않습니다.)
+      </Text>
+      <div style={{ height: 30 }}></div>
+      <div className="horizontal-flex">
+        {/* 데이터 입력 부분 */}
+        <div className="vertical-flex">
+          <div
+            className="horizontal-flex flex-align-end"
+            style={{ alignItems: "center", gap: 30 }}
+          >
+            <Text>성별</Text>
+            <div className="horizontal-flex" style={{ gap: 30 }}>
+              <RadioButton
+                isChecked={gender === MaleCode}
                 onClick={() => {
-                  setIsDrink(!isDrink);
+                  setGender(gender === MaleCode ? "" : MaleCode);
                 }}
-                title="음주여부"
+                title="남성"
               />
-              <CheckBox
-                isChecked={isSmoke}
+              <RadioButton
+                isChecked={gender === FemaleCode}
                 onClick={() => {
-                  setIsSmoke(!isSmoke);
+                  setGender(gender === FemaleCode ? "" : FemaleCode);
                 }}
-                title="흡연여부"
+                title="여성"
               />
-            </div>
-            <div style={{ height: 30 }}></div>
-            <div className="horizontal-flex flex-align-center">
-              <Button isDisabled={isSaveButtonDisable} onClick={handleSaveData}>
-                건강 데이터 저장
-              </Button>
             </div>
           </div>
-          <div style={{ width: 120 }}></div>
-          {/* ocr 입력 부분 */}
-          <div className="vertical-flex">
-            <div style={{ width: 479, height: 479 }}>
-              {ocrImage && (
-                <img src={ocrImage} style={{ width: 459, height: 459 }} />
-              )}
-            </div>
-            <div className="horizontal-flex flex-align-center">
-              <Button onClick={handleButtonClick}>OCR로 입력</Button>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              style={{ display: "none" }}
-              onChange={handleFileChange}
+          {inputFields.map((item) => {
+            return (
+              <Input
+                key={item.key}
+                fixWidth={inputFixWidth}
+                maxLength={30}
+                onChange={(e) => handleChange(item.key, e.target.value)}
+                placeholder={item.placeholder}
+                title={item.title}
+                type="number"
+                value={formData[item.key]}
+              />
+            );
+          })}
+          <div style={{ height: 20 }}></div>
+          <div className="vertical-flex flex-align-center">
+            <CheckBox
+              isChecked={isDrink}
+              onClick={() => {
+                setIsDrink(!isDrink);
+              }}
+              title="음주여부"
+            />
+            <CheckBox
+              isChecked={isSmoke}
+              onClick={() => {
+                setIsSmoke(!isSmoke);
+              }}
+              title="흡연여부"
             />
           </div>
+          <div style={{ height: 30 }}></div>
+          <div className="horizontal-flex flex-align-center">
+            <Button
+              isDisabled={isSaveButtonDisable}
+              onClick={handleSaveDataDialog}
+            >
+              건강 데이터 저장
+            </Button>
+          </div>
+        </div>
+        <div style={{ width: 120 }}></div>
+        {/* ocr 입력 부분 */}
+        <div className="vertical-flex">
+          <div style={{ width: ocrImageSize + 20, height: ocrImageSize + 20 }}>
+            {ocrImages && (
+              <>
+                {ocrImages[0].type === "application/pdf" ? (
+                  <iframe
+                    src={URL.createObjectURL(ocrImages[0])}
+                    width={ocrImageSize}
+                    height={ocrImageSize}
+                    title="pdf-viewer"
+                  />
+                ) : (
+                  <img
+                    src={URL.createObjectURL(ocrImages[0])}
+                    alt="preview"
+                    style={{
+                      width: ocrImageSize,
+                      height: ocrImageSize,
+                      objectFit: "cover",
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </div>
+          <div className="horizontal-flex flex-align-center">
+            <Button onClick={handleButtonClick}>OCR로 입력</Button>
+          </div>
+          <input
+            type="file"
+            multiple
+            accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.bmp"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
         </div>
       </div>
     </div>

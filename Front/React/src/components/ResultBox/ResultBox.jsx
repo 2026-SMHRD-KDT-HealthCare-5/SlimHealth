@@ -5,22 +5,34 @@ export const ResultBox = ({
   title,
   titleColor,
   backgroundColor,
+  isShadow,
   unit,
   currentValue,
   predictionValue,
+  improvementContent,
 }) => {
   return (
     <div
       className="resultBox"
       style={{ backgroundColor: backgroundColor || "white" }}
     >
-      <div style={{ color: titleColor }}>
-        <Text textStyle={"bold"}>{title}</Text>
+      <div
+        className="horizontal-flex flex-align-center"
+        style={{ gap: 10, width: "100%" }}
+      >
+        <div style={{ color: titleColor }}>
+          <Text textStyle={"bold"} isShadow={isShadow}>
+            {title}
+          </Text>
+        </div>
+        <div className="resultValueBox">
+          <Text textStyle={"medium"}>{`현재 : ${currentValue} ${unit}`}</Text>
+          <Text
+            textStyle={"medium"}
+          >{`예측 : ${predictionValue} ${unit}`}</Text>
+        </div>
       </div>
-      <div className="resultValueBox">
-        <Text textStyle={"medium"}>{`현재 : ${currentValue} ${unit}`}</Text>
-        <Text textStyle={"medium"}>{`예측 : ${predictionValue} ${unit}`}</Text>
-      </div>
+      <Text>{improvementContent}</Text>
     </div>
   );
 };

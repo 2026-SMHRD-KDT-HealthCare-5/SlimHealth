@@ -22,7 +22,7 @@ export const loginApi = (body) => {
       resolve({
         message: "로그인 성공",
         result: true,
-        userInfo: { userId: "1" },
+        userInfo: { userId: "1", accessToken: "token", refreshToken: "token" },
       });
     } else {
       resolve({
