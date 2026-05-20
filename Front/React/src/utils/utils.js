@@ -8,6 +8,70 @@ import { sliderWidth } from "../components/Slider";
 export const inputFixWidth = 140;
 export const checkBoxSize = 30;
 
+export const inputFields = [
+  {
+    title: "키",
+    placeholder: "현재 키(cm) 입력",
+    key: "userHeight",
+  },
+  {
+    title: "나이",
+    placeholder: "현재 나이 입력",
+    key: "age",
+  },
+  {
+    title: "체중",
+    placeholder: "현재 체중(kg) 입력",
+    key: "userWeight",
+  },
+  {
+    title: "허리둘레",
+    placeholder: "현재 허리둘레(cm) 입력",
+    key: "waistLine",
+  },
+  {
+    title: "HDL 콜레스테롤",
+    placeholder: "현재 HDL 콜레스테롤 수치(mg/dl) 입력",
+    key: "cholesterol",
+  },
+  {
+    title: "수축기 혈압",
+    placeholder: "현재 수축기 혈압(mmHg) 입력",
+    key: "systolicBp",
+  },
+  {
+    title: "이완기 혈압",
+    placeholder: "현재 이완기 혈압(mmHg) 입력",
+    key: "diastolicBp",
+  },
+  {
+    title: "공복시 혈당",
+    placeholder: "현재 혈당(mg/dl) 입력",
+    key: "bloodGlucose",
+  },
+  {
+    title: "중성지방",
+    placeholder: "현재 중성지방(mg/dl) 입력",
+    key: "triglyceride",
+  },
+];
+
+export const totalInputFields = [
+  ...inputFields,
+  {
+    title: "음주여부",
+    key: "isDrink",
+  },
+  {
+    title: "흡연여부",
+    key: "isSmoke",
+  },
+  {
+    title: "성별",
+    key: "gender",
+  },
+];
+
 //슬라이더 이미지 url은 나중에 정해지면 변경하기
 export const sliderImageList = [
   character1,

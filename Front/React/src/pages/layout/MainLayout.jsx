@@ -9,7 +9,9 @@ const MainLayout = () => {
     <div className="mainContainer">
       <TopNavigation
         menuList={
-          userInfo ? ["dataInput", "prediction", "logout"] : ["login", "join"]
+          userInfo
+            ? ["dataInputHistory", "dataInput", "prediction", "logout"]
+            : ["login", "join"]
         }
       />
       <Outlet />

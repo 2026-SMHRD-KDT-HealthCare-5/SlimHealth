@@ -24,11 +24,16 @@ import {
   sliderValueToWeight,
   weightToSliderValue,
 } from "../utils/utils";
+import { useSearchParams } from "react-router-dom";
 
 const sliderMaxValue = 140;
 const sliderMinValue = 71;
 
 const Prediction = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const id = searchParams.get("id");
+
   //슬라이더 부분
   const [sliderValue, setSliderValue] = useState(0);
   const [userWeight, setUserWeight] = useState(0);
@@ -72,7 +77,7 @@ const Prediction = () => {
   //요약 박스 설정
   const fetchSummaryResult = async () => {
     try {
-      const data = await getSummaryResultApi();
+      const data = await getSummaryResultApi(id);
       setSummary(data);
     } catch (e) {
       console.log(e);
@@ -82,7 +87,7 @@ const Prediction = () => {
   //개선사항 설정
   const fetchImprovementList = async () => {
     try {
-      const data = await getImprovementListApi();
+      const data = await getImprovementListApi(id);
       setImprovementList(data);
     } catch (e) {
       console.log(e);
@@ -92,7 +97,7 @@ const Prediction = () => {
   //분석내용 설정
   const fetchAnalysisContent = async () => {
     try {
-      const data = await getAnalysisContentApi();
+      const data = await getAnalysisContentApi(id);
       setAnalysisContent(data);
     } catch (e) {
       console.log(e);
@@ -104,7 +109,7 @@ const Prediction = () => {
     //5대지표 예측결과 및 슬라이더 초기값 설정
     const fetchKPIPrediction = async () => {
       try {
-        const data = await getKPIPredictionApi();
+        const data = await getKPIPredictionApi(id);
         //5대지표 예측결과 설정
         setKpiResultList(data.result);
 
@@ -176,7 +181,7 @@ const Prediction = () => {
           <div style={{ height: 10 }}></div>
           {/* 5대 지표 예측 부분 */}
           <div className="horizontal-flex">
-            <div className="horizontal-grid-3">
+            <div className="horizontal-grid-2">
               {kpiResultList.map((item) => {
                 return (
                   <ResultBox
@@ -188,6 +193,7 @@ const Prediction = () => {
                     backgroundColor={item.backgroundColor}
                     isShadow={item.isShadow}
                     unit={item.unit}
+                    improvementContent={item.improvementContent}
                   />
                 );
               })}

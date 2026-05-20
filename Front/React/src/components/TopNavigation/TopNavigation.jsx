@@ -37,6 +37,14 @@ export const TopNavigation = ({ isBackButton, menuList }) => {
       },
     },
     {
+      key: "dataInputHistory",
+      title: "건강 데이터 조회",
+      path: "/dataInputHistory",
+      onClick: () => {
+        nav("/dataInputHistory");
+      },
+    },
+    {
       key: "dataInput",
       title: "건강 데이터 입력",
       path: "/dataInput",

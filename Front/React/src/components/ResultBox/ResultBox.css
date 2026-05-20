@@ -1,8 +1,9 @@
 .resultBox {
   display: inline-flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 30px;
   align-items: center;
+  min-width: 500px;
   border: 1px solid black;
   border-radius: 12px;
   padding-left: 30px;

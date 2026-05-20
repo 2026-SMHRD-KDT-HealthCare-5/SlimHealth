@@ -3,14 +3,14 @@ import { TopNavigation } from "../components/TopNavigation";
 import { Text } from "../components/Text/Text";
 import { Input } from "../components/Input/Input";
 import { Button } from "../components/Button/Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   getHealthDataApi,
   ocrInputApi,
   saveHealthDataApi,
 } from "../api/healthDataApi";
 import Context from "../context/context";
-import { inputFixWidth } from "../utils/utils";
+import { inputFields, inputFixWidth } from "../utils/utils";
 import { CheckBox } from "../components/CheckBox/CheckBox";
 import { RadioButton } from "../components/RadioButton/RadioButton";
 
@@ -19,55 +19,11 @@ const FemaleCode = "Female";
 
 const ocrImageSize = 489;
 
-const inputFields = [
-  {
-    title: "키",
-    placeholder: "현재 키(cm) 입력",
-    key: "userHeight",
-  },
-  {
-    title: "나이",
-    placeholder: "현재 나이 입력",
-    key: "age",
-  },
-  {
-    title: "체중",
-    placeholder: "현재 체중(kg) 입력",
-    key: "userWeight",
-  },
-  {
-    title: "허리둘레",
-    placeholder: "현재 허리둘레(cm) 입력",
-    key: "waistLine",
-  },
-  {
-    title: "HDL 콜레스테롤",
-    placeholder: "현재 HDL 콜레스테롤 수치(mg/dl) 입력",
-    key: "cholesterol",
-  },
-  {
-    title: "수축기 혈압",
-    placeholder: "현재 수축기 혈압(mmHg) 입력",
-    key: "systolicBp",
-  },
-  {
-    title: "이완기 혈압",
-    placeholder: "현재 이완기 혈압(mmHg) 입력",
-    key: "diastolicBp",
-  },
-  {
-    title: "공복시 혈당",
-    placeholder: "현재 혈당(mg/dl) 입력",
-    key: "bloodGlucose",
-  },
-  {
-    title: "중성지방",
-    placeholder: "현재 중성지방(mg/dl) 입력",
-    key: "triglyceride",
-  },
-];
-
 const DataInput = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const id = searchParams.get("id");
+
   const { openDialog, closeDialog } = useContext(Context);
   const nav = useNavigate();
 
@@ -136,7 +92,7 @@ const DataInput = () => {
   //데이터 저장 버튼
   const handleSaveData = async () => {
     try {
-      await saveHealthDataApi({ ...formData, isDrink, isSmoke, gender });
+      await saveHealthDataApi({ ...formData, isDrink, isSmoke, gender, id });
 
       openDialog(
         "데이터 저장 성공", //title
@@ -167,7 +123,7 @@ const DataInput = () => {
     const fetchData = async () => {
       try {
         //이전 데이터 연동
-        const data = await getHealthDataApi();
+        const data = await getHealthDataApi(id);
 
         setFormData(data);
         setIsDrink(data.isDrink);
