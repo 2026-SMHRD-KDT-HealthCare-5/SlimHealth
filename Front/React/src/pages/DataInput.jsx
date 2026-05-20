@@ -13,6 +13,7 @@ import Context from "../context/context";
 import { inputFields, inputFixWidth } from "../utils/utils";
 import { CheckBox } from "../components/CheckBox/CheckBox";
 import { RadioButton } from "../components/RadioButton/RadioButton";
+import { predictionPath } from "../App";
 
 const MaleCode = "Male";
 const FemaleCode = "Female";
@@ -99,7 +100,7 @@ const DataInput = () => {
         "데이터가 저장되었습니다. 해당 데이터로 바로 예측하시겠습니까?", //content
         true, //isCancelButton
         () => {
-          nav("/prediction");
+          nav(predictionPath);
           closeDialog();
         }, //onConfirmClick
       );

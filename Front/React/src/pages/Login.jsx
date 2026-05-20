@@ -8,6 +8,7 @@ import { Button } from "../components/Button/Button";
 import { useNavigate } from "react-router-dom";
 import Context from "../context/context";
 import { loginApi } from "../api/userApi";
+import { joinPath } from "../App";
 
 const Login = () => {
   const { setUserInfo, processLogin, processLogout, openDialog, closeDialog } =
@@ -68,7 +69,7 @@ const Login = () => {
       <div className="horizontal-flex">
         <OutlinedButton
           onClick={() => {
-            nav("/join");
+            nav(joinPath);
           }}
         >
           회원가입

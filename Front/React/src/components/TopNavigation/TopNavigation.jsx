@@ -6,6 +6,13 @@ import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import Context from "../../context/context";
 import backButton from "../../assets/backButton.png";
+import {
+  dataInputHistoryPath,
+  dataInputPath,
+  joinPath,
+  loginPath,
+  predictionPath,
+} from "../../App";
 
 export const TopNavigation = ({ isBackButton, menuList }) => {
   const nav = useNavigate();
@@ -15,17 +22,17 @@ export const TopNavigation = ({ isBackButton, menuList }) => {
     {
       key: "login",
       title: "로그인",
-      path: "/login",
+      path: loginPath,
       onClick: () => {
-        nav("/login");
+        nav(loginPath);
       },
     },
     {
       key: "join",
       title: "회원가입",
-      path: "/join",
+      path: joinPath,
       onClick: () => {
-        nav("/join");
+        nav(joinPath);
       },
     },
     {
@@ -39,25 +46,25 @@ export const TopNavigation = ({ isBackButton, menuList }) => {
     {
       key: "dataInputHistory",
       title: "건강 데이터 조회",
-      path: "/dataInputHistory",
+      path: dataInputHistoryPath,
       onClick: () => {
-        nav("/dataInputHistory");
+        nav(dataInputHistoryPath);
       },
     },
     {
       key: "dataInput",
       title: "건강 데이터 입력",
-      path: "/dataInput",
+      path: dataInputPath,
       onClick: () => {
-        nav("/dataInput");
+        nav(dataInputPath);
       },
     },
     {
       key: "prediction",
       title: "데이터 예측",
-      path: "/prediction",
+      path: predictionPath,
       onClick: () => {
-        nav("/prediction");
+        nav(predictionPath);
       },
     },
     {

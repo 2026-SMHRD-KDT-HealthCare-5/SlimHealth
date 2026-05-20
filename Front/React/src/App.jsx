@@ -12,6 +12,12 @@ import MainLayout from "./pages/layout/MainLayout";
 import CommonLayout from "./pages/layout/CommonLayout";
 import DataInputHistory from "./pages/DataInputHistory";
 
+export const loginPath = "/login";
+export const joinPath = "/join";
+export const dataInputPath = "/dataInput";
+export const predictionPath = "/prediction";
+export const dataInputHistoryPath = "/dataInputHistory";
+
 const AppContent = () => {
   const { isDialogOpen, dialogInfo } = useContext(Context);
 
@@ -25,15 +31,15 @@ const AppContent = () => {
 
         <Route element={<CommonLayout />}>
           {/* 로그인 페이지 */}
-          <Route path="/login" element={<Login />} />
+          <Route path={loginPath} element={<Login />} />
           {/* 회원가입 페이지 */}
-          <Route path="/join" element={<Join />} />
+          <Route path={joinPath} element={<Join />} />
           {/* 건강 데이터 입력 페이지 */}
-          <Route path="/dataInput" element={<DataInput />} />
+          <Route path={dataInputPath} element={<DataInput />} />
           {/* 예측 페이지 */}
-          <Route path="/prediction" element={<Prediction />} />
+          <Route path={predictionPath} element={<Prediction />} />
           {/* 데이터 입력 내역 조회 페이지 */}
-          <Route path="/dataInputHistory" element={<DataInputHistory />} />
+          <Route path={dataInputHistoryPath} element={<DataInputHistory />} />
         </Route>
       </Routes>
 

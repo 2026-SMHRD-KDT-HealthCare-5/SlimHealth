@@ -11,6 +11,7 @@ import { CheckBox } from "../components/CheckBox/CheckBox";
 import { OutlinedButton } from "../components/OutlinedButton/OutlinedButton";
 import Context from "../context/context";
 import { useNavigate } from "react-router-dom";
+import { dataInputPath, predictionPath } from "../App";
 
 const modifyKey = "modify";
 const deleteKey = "delete";
@@ -80,7 +81,7 @@ const DataInputHistory = () => {
 
   //수정 버튼
   const moveModifyHistoryPage = (id) => {
-    nav(`/dataInput?id=${id}`);
+    nav(`${dataInputPath}?id=${id}`);
   };
 
   const openDeleteDialog = (id) => {
@@ -111,7 +112,7 @@ const DataInputHistory = () => {
 
   //예측 버튼
   const movePredictionPage = (id) => {
-    nav(`/prediction?id=${id}`);
+    nav(`${predictionPath}?id=${id}`);
   };
 
   return (
