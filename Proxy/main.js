@@ -2,33 +2,21 @@
 
 
 const express = require("express")
-
 const app = express()
 
 app.use(express.urlencoded({extended: true}));
 app.use( express.json() );
 
-const userRouter = require("./routes/user")
+
+const healthRouter = require("./Router/healthRouter")
+const userRouter   = require("./Router/userRouter")
 
 
-app.use("/user", userRouter);
+app.use("/api/health",  healthRouter);
+app.use("/api/user", userRouter);
 
 
 
-app.listen(3000, ()=>{
-    console.log("3000 포트에서 서버 사용중")
+app.listen(8000, ()=>{
+    console.log("8000 포트에서 서버 사용중")
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
