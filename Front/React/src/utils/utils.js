@@ -5,6 +5,8 @@ import character4 from "../assets/character4.png";
 import character5 from "../assets/character5.png";
 import { sliderWidth } from "../components/Slider";
 
+export const userInfoKey = "userInfo";
+
 export const inputFixWidth = 140;
 export const checkBoxSize = 30;
 

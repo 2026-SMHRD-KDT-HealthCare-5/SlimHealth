@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { TopNavigation } from "../components/TopNavigation";
 import { Text } from "../components/Text/Text";
 import { Input } from "../components/Input/Input";
@@ -10,7 +10,7 @@ import Context from "../context/context";
 import { loginApi } from "../api/userApi";
 
 const Login = () => {
-  const { setUserInfo, processLogin, openDialog, closeDialog } =
+  const { setUserInfo, processLogin, processLogout, openDialog, closeDialog } =
     useContext(Context);
 
   const [account, setAccount] = useState("");
@@ -35,6 +35,10 @@ const Login = () => {
       console.log(e);
     }
   };
+
+  useEffect(() => {
+    processLogout();
+  }, [processLogout]);
 
   return (
     <div className="contentContainer" style={{ gap: 30 }}>

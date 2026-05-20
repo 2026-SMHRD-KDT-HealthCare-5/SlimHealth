@@ -1,8 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import Context from "../context/context";
-
-const userInfoKey = "userInfo";
+import { userInfoKey } from "../utils/utils";
 
 //유저 정보를 저장하는 contextapi
 const ContextProvider = ({ children }) => {
