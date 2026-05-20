@@ -134,7 +134,7 @@ const DataInput = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     return () => {

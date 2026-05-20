@@ -74,36 +74,6 @@ const Prediction = () => {
     }
   };
 
-  //요약 박스 설정
-  const fetchSummaryResult = async () => {
-    try {
-      const data = await getSummaryResultApi(id);
-      setSummary(data);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  //개선사항 설정
-  const fetchImprovementList = async () => {
-    try {
-      const data = await getImprovementListApi(id);
-      setImprovementList(data);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  //분석내용 설정
-  const fetchAnalysisContent = async () => {
-    try {
-      const data = await getAnalysisContentApi(id);
-      setAnalysisContent(data);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
   //api 연결 부분 필요
   useEffect(() => {
     //5대지표 예측결과 및 슬라이더 초기값 설정
@@ -129,6 +99,36 @@ const Prediction = () => {
       }
     };
 
+    //요약 박스 설정
+    const fetchSummaryResult = async () => {
+      try {
+        const data = await getSummaryResultApi(id);
+        setSummary(data);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    //개선사항 설정
+    const fetchImprovementList = async () => {
+      try {
+        const data = await getImprovementListApi(id);
+        setImprovementList(data);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    //분석내용 설정
+    const fetchAnalysisContent = async () => {
+      try {
+        const data = await getAnalysisContentApi(id);
+        setAnalysisContent(data);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
     const fetchData = async () => {
       await Promise.all([
         fetchSummaryResult(),
@@ -138,7 +138,7 @@ const Prediction = () => {
       ]);
     };
     fetchData();
-  }, []);
+  }, [id]);
 
   return (
     <div className="contentContainer">
