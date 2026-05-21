@@ -63,13 +63,11 @@ const Prediction = () => {
 
     //예측 부분 조정
     if (isSetResult) {
-      setKpiResultList(
-        kpiResultList.map((item) => {
-          return {
-            ...item,
-            predictionValue: parseInt(80 + value),
-          };
-        }),
+      setKpiResultList((prev) =>
+        prev.map((item) => ({
+          ...item,
+          predictionValue: parseInt(80 + value),
+        })),
       );
     }
   };

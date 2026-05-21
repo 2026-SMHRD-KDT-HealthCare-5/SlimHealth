@@ -1,6 +1,9 @@
 .slider {
   position: relative;
   height: 10px;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
 }
 
 .sliderLine {
