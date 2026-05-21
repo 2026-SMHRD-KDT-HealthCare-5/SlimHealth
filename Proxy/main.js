@@ -7,7 +7,7 @@ const app = express()
 const cors = require("cors");
 
 app.use(cors({
-    origin: "http://localhost:3000", // 💡 리액트(Axios)가 출발하는 주소를 정확히 명시!
+    origin: "http://localhost:5173", // 💡 리액트(Axios)가 출발하는 주소를 정확히 명시!
     credentials: true                
 }));
 
