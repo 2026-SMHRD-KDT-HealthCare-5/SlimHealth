@@ -6,7 +6,7 @@ export default {
   argTypes: {
     grade: {
       control: "radio",
-      options: ["normal", "danger"],
+      options: ["위험", "주의", "정상"],
     },
   },
 };

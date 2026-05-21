@@ -15,8 +15,8 @@ import { CheckBox } from "../components/CheckBox/CheckBox";
 import { RadioButton } from "../components/RadioButton/RadioButton";
 import { predictionPath } from "../App";
 
-const MaleCode = "Male";
-const FemaleCode = "Female";
+const MaleCode = "남성";
+const FemaleCode = "여성";
 
 const ocrImageSize = 489;
 
@@ -29,15 +29,15 @@ const DataInput = () => {
   const nav = useNavigate();
 
   const [formData, setFormData] = useState({
-    userHeight: 0,
+    height: 0,
     age: 0,
-    userWeight: 0,
-    waistLine: 0,
-    cholesterol: 0,
-    systolicBp: 0,
-    diastolicBp: 0,
-    bloodGlucose: 0,
-    triglyceride: 0,
+    weight: 0,
+    waist: 0,
+    hdl: 0,
+    sbp: 0,
+    dbp: 0,
+    bs: 0,
+    tg: 0,
   });
 
   const [gender, setGender] = useState("");

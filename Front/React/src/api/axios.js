@@ -35,6 +35,7 @@ client.interceptors.response.use(
         const refreshToken = localStorage.getItem(userInfoKey).refreshToken;
         const response = await axios.post(
           `${import.meta.env.VITE_API_URL}/${refreshPath}`,
+          {},
           {
             headers: { Authorization: `Bearer ${refreshToken}` },
           },

@@ -36,7 +36,7 @@ const Prediction = () => {
 
   //슬라이더 부분
   const [sliderValue, setSliderValue] = useState(0);
-  const [userWeight, setUserWeight] = useState(0);
+  const [weight, setWeight] = useState(0);
   const [currentSliderImage, setCurrentSliderImage] = useState(
     sliderImageList[0],
   );
@@ -58,18 +58,20 @@ const Prediction = () => {
 
     setCurrentSliderImage(sliderImageList[getSliderImageIndex(value)]);
 
-    const weight = sliderValueToWeight(value, sliderMaxValue, sliderMinValue);
-    setUserWeight(weight);
+    const tempWeight = sliderValueToWeight(
+      value,
+      sliderMaxValue,
+      sliderMinValue,
+    );
+    setWeight(tempWeight);
 
     //예측 부분 조정
     if (isSetResult) {
-      setKpiResultList(
-        kpiResultList.map((item) => {
-          return {
-            ...item,
-            predictionValue: parseInt(80 + value),
-          };
-        }),
+      setKpiResultList((prev) =>
+        prev.map((item) => ({
+          ...item,
+          predictionValue: parseInt(80 + value),
+        })),
       );
     }
   };
@@ -83,11 +85,11 @@ const Prediction = () => {
         //5대지표 예측결과 설정
         setKpiResultList(data.result);
 
-        const weight = data.weight;
-        setUserWeight(weight);
+        const tempWeight = data.weight;
+        setWeight(tempWeight);
 
         const sliderVal = weightToSliderValue(
-          weight,
+          tempWeight,
           sliderMaxValue,
           sliderMinValue,
         );
@@ -163,7 +165,7 @@ const Prediction = () => {
                 minValue={sliderMinValue}
               />
               <div style={{ height: 10 }}></div>
-              <Text>{`예측 체중 : ${userWeight}kg`}</Text>
+              <Text>{`예측 체중 : ${weight}kg`}</Text>
             </div>
             <div style={{ width: 30 }}></div>
             {/* 건강 요약 부분 */}
@@ -171,7 +173,7 @@ const Prediction = () => {
               {summary && (
                 <SummaryBox
                   description={summary.description}
-                  grade={summary.grade}
+                  grade={summary.risk_level}
                   score={summary.score}
                   title={summary.title}
                 />
@@ -186,13 +188,11 @@ const Prediction = () => {
                 return (
                   <ResultBox
                     key={item.key}
+                    title={item.title}
+                    status={item.status}
+                    unit={item.unit}
                     currentValue={item.currentValue}
                     predictionValue={item.predictionValue}
-                    title={item.title}
-                    titleColor={item.titleColor}
-                    backgroundColor={item.backgroundColor}
-                    isShadow={item.isShadow}
-                    unit={item.unit}
                     improvementContent={item.improvementContent}
                   />
                 );
@@ -201,7 +201,7 @@ const Prediction = () => {
           </div>
         </div>
         {/* 차트 부분 */}
-        <div className="bigcard" style={{ flex: 1 }}>
+        <div className="bigcard" style={{ flex: 1, padding: 10 }}>
           <EBarChart
             metrics={kpiResultList.map((item) => {
               return {
