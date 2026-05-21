@@ -31,13 +31,13 @@ const DataInput = () => {
   const [formData, setFormData] = useState({
     height: 0,
     age: 0,
-    userWeight: 0,
-    waistLine: 0,
-    cholesterol: 0,
-    systolicBp: 0,
-    diastolicBp: 0,
-    bloodGlucose: 0,
-    triglyceride: 0,
+    weight: 0,
+    waist: 0,
+    hdl: 0,
+    sbp: 0,
+    dbp: 0,
+    bs: 0,
+    tg: 0,
   });
 
   const [gender, setGender] = useState("");

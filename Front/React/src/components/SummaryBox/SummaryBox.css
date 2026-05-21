@@ -20,3 +20,9 @@
   border: 1px solid #ff080c;
   color: #b74141;
 }
+
+.warning {
+  background-color: #faeeda;
+  border: 1px solid #ef9f27;
+  color: #854f0b;
+}
