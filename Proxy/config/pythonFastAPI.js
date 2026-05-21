@@ -3,7 +3,7 @@
 
 // 📄 path: src/config/pythonFastAPI.js
 
-const PYTHON_SERVER_BASE = "http://localhost:8080";
+const PYTHON_SERVER_BASE = "http://localhost:8081";
 
 const pythonConfig = {
     // 1. 기본 주소
