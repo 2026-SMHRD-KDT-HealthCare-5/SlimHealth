@@ -4,6 +4,14 @@
 const express = require("express")
 const app = express()
 
+const cors = require("cors");
+
+app.use(cors({
+    origin: "http://localhost:3000", // 💡 리액트(Axios)가 출발하는 주소를 정확히 명시!
+    credentials: true                
+}));
+
+
 app.use(express.urlencoded({extended: true}));
 app.use( express.json() );
 
@@ -18,5 +26,5 @@ app.use("/api/user", userRouter);
 
 
 app.listen(8000, ()=>{
-    console.log("8000 포트에서 서버 사용중")
+    console.log("node 중계서버, 8000 포트에서 사용중")
 })
