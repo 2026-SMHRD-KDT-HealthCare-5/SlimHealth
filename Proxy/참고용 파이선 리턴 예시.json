@@ -1,0 +1,41 @@
+{
+  "user": {
+    "height": 175,
+    "smoke": 0,
+    "drink": 1
+  },
+  "meta": {
+    "current_bmi": 26.12
+  },
+  "predictions": {
+    "kg_70": {
+      "target_weight": 70,
+      "waist": 82.5,
+      "sbp": 118,
+      "dbp": 76,
+      "bs": 92,
+      "tg": 130,
+      "hdl": 52
+    },
+    "kg_71": {
+      "target_weight": 71,
+      "waist": 83.2,
+      "sbp": 119,
+      "dbp": 77,
+      "bs": 93,
+      "tg": 134,
+      "hdl": 51
+    },
+    "kg_72": {
+      "target_weight": 72,
+      "waist": 84.0,
+      "sbp": 121,
+      "dbp": 78,
+      "bs": 95,
+      "tg": 138,
+      "hdl": 50
+    }
+  },
+  "주석01" : "response.data.predictions + 반복문 으로 접근할 것",
+  "주석02" : "response.data.user 등으로 접근할 것"
+}

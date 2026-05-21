@@ -1,0 +1,31 @@
+
+{ "health" :
+  {
+    "userHeight": 175,
+    "age": 32,
+    "userWeight": 72,
+    "waistLine": 86,
+    "cholesterol": 195,
+    "systolicBp": 122,
+    "diastolicBp": 78,
+    "bloodGlucose": 96,
+    "triglyceride": 145,
+    "isDrink": true,
+    "isSmoke": false,
+    "gender": "Male"
+  }
+, 
+
+"user" :
+  {
+    "account": "user1234",
+    "password": "securePassword77!",
+    "name": "김철수",
+    "email": "chulsoo.kim@example.com",
+    "phoneNumber": "010-1234-5678"
+  }
+,
+
+  "주석01" : " 큰 틀 두개 health와 user는 무시하라. ",
+  "주석02" : " 내부 객체만 req.body.~~ 에 있을것이다.  "
+}
