@@ -11,7 +11,7 @@ export const saveHealthDataApi = (body) => {
 export const getHealthDataApi = (id) => {
   return new Promise((resolve) => {
     resolve({
-      userHeight: 130,
+      height: 130,
       age: 30,
       userWeight: 60,
       waistLine: 300,
@@ -22,7 +22,7 @@ export const getHealthDataApi = (id) => {
       triglyceride: 20,
       isDrink: true,
       isSmoke: false,
-      gender: "Male",
+      gender: "남성",
     });
   });
 };
@@ -31,7 +31,7 @@ export const getHealthDataApi = (id) => {
 export const ocrInputApi = (files) => {
   return new Promise((resolve) => {
     resolve({
-      userHeight: 170,
+      height: 170,
       age: 50,
       userWeight: 70,
       waistLine: 400,
@@ -40,7 +40,7 @@ export const ocrInputApi = (files) => {
       diastolicBp: 50,
       bloodGlucose: 60,
       triglyceride: 30,
-      gender: "Female",
+      gender: "여성",
     });
   });
 };
@@ -53,9 +53,7 @@ export const getKPIPredictionApi = (id) => {
         {
           key: "waistLine",
           title: "허리둘레",
-          titleColor: "black",
-          backgroundColor: "white",
-          isShadow: false,
+          status: "위험",
           unit: "cm",
           currentValue: 150,
           predictionValue: 170,
@@ -64,10 +62,8 @@ export const getKPIPredictionApi = (id) => {
         },
         {
           key: "cholesterol",
-          title: "콜레스테롤",
-          titleColor: "red",
-          backgroundColor: "white",
-          isShadow: false,
+          title: "HDL",
+          status: "주의",
           unit: "mg/dl",
           currentValue: 80,
           predictionValue: 90,
@@ -77,9 +73,7 @@ export const getKPIPredictionApi = (id) => {
         {
           key: "bloodGlucose",
           title: "혈당",
-          titleColor: "orange",
-          backgroundColor: "white",
-          isShadow: true,
+          status: "정상",
           unit: "mg/dl",
           currentValue: 100,
           predictionValue: 130,
@@ -89,9 +83,7 @@ export const getKPIPredictionApi = (id) => {
         {
           key: "systolicBp",
           title: "수축기 혈압",
-          titleColor: "black",
-          backgroundColor: "skyBlue",
-          isShadow: false,
+          status: "위험",
           unit: "mmHg",
           currentValue: 90,
           predictionValue: 160,
@@ -101,9 +93,7 @@ export const getKPIPredictionApi = (id) => {
         {
           key: "diastolicBp",
           title: "이완기 혈압",
-          titleColor: "black",
-          backgroundColor: "skyBlue",
-          isShadow: false,
+          status: "주의",
           unit: "mmHg",
           currentValue: 90,
           predictionValue: 160,
@@ -113,9 +103,7 @@ export const getKPIPredictionApi = (id) => {
         {
           key: "triglyceride",
           title: "중성지방",
-          titleColor: "black",
-          backgroundColor: "white",
-          isShadow: false,
+          status: "정상",
           unit: "mg/dl",
           currentValue: 30,
           predictionValue: 50,
@@ -184,7 +172,7 @@ export const getHealthDataHistories = (page) => {
       {
         id: 1,
         date: "2026-01-01",
-        userHeight: 137,
+        height: 137,
         age: 32,
         userWeight: 60,
         waistLine: 300,
@@ -195,12 +183,12 @@ export const getHealthDataHistories = (page) => {
         triglyceride: 20,
         isDrink: true,
         isSmoke: false,
-        gender: "Male",
+        gender: "남성",
       },
       {
         id: 2,
         date: "2026-04-03",
-        userHeight: 145,
+        height: 145,
         age: 32,
         userWeight: 63,
         waistLine: 303,
@@ -211,12 +199,12 @@ export const getHealthDataHistories = (page) => {
         triglyceride: 20,
         isDrink: true,
         isSmoke: false,
-        gender: "Male",
+        gender: "남성",
       },
       {
         id: 3,
         date: "2026-04-06",
-        userHeight: 143,
+        height: 143,
         age: 32,
         userWeight: 63,
         waistLine: 340,
@@ -227,12 +215,12 @@ export const getHealthDataHistories = (page) => {
         triglyceride: 20,
         isDrink: true,
         isSmoke: false,
-        gender: "Male",
+        gender: "남성",
       },
       {
         id: 4,
         date: "2026-04-11",
-        userHeight: 150,
+        height: 150,
         age: 32,
         userWeight: 70,
         waistLine: 300,
@@ -243,12 +231,12 @@ export const getHealthDataHistories = (page) => {
         triglyceride: 20,
         isDrink: true,
         isSmoke: false,
-        gender: "Male",
+        gender: "남성",
       },
       {
         id: 5,
         date: "2026-04-15",
-        userHeight: 140,
+        height: 140,
         age: 32,
         userWeight: 65,
         waistLine: 300,
@@ -259,12 +247,12 @@ export const getHealthDataHistories = (page) => {
         triglyceride: 20,
         isDrink: true,
         isSmoke: false,
-        gender: "Male",
+        gender: "남성",
       },
       {
         id: 6,
         date: "2026-04-21",
-        userHeight: 137,
+        height: 137,
         age: 32,
         userWeight: 60,
         waistLine: 300,
@@ -275,12 +263,12 @@ export const getHealthDataHistories = (page) => {
         triglyceride: 20,
         isDrink: true,
         isSmoke: false,
-        gender: "Male",
+        gender: "남성",
       },
       {
         id: 7,
         date: "2026-04-27",
-        userHeight: 156,
+        height: 156,
         age: 32,
         userWeight: 76,
         waistLine: 304,
@@ -291,12 +279,12 @@ export const getHealthDataHistories = (page) => {
         triglyceride: 20,
         isDrink: true,
         isSmoke: false,
-        gender: "Male",
+        gender: "남성",
       },
       {
         id: 8,
         date: "2026-05-01",
-        userHeight: 165,
+        height: 165,
         age: 32,
         userWeight: 64,
         waistLine: 356,
@@ -307,12 +295,12 @@ export const getHealthDataHistories = (page) => {
         triglyceride: 20,
         isDrink: true,
         isSmoke: false,
-        gender: "Male",
+        gender: "남성",
       },
       {
         id: 9,
         date: "2026-05-03",
-        userHeight: 137,
+        height: 137,
         age: 32,
         userWeight: 63,
         waistLine: 306,
@@ -323,12 +311,12 @@ export const getHealthDataHistories = (page) => {
         triglyceride: 20,
         isDrink: true,
         isSmoke: false,
-        gender: "Male",
+        gender: "남성",
       },
       {
         id: 10,
         date: "2026-05-07",
-        userHeight: 137,
+        height: 137,
         age: 32,
         userWeight: 60,
         waistLine: 300,
@@ -339,7 +327,7 @@ export const getHealthDataHistories = (page) => {
         triglyceride: 20,
         isDrink: true,
         isSmoke: false,
-        gender: "Male",
+        gender: "남성",
       },
     ]);
   });

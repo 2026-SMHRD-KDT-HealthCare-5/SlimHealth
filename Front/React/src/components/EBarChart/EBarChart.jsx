@@ -56,11 +56,25 @@ export const EBarChart = ({ metrics }) => {
     animation: false,
     title: {
       text: "5대 지표 차트",
+      textStyle: {
+        fontSize: 25,
+        fontWeight: 700,
+      },
     },
     legend: {
       data: ["현재값", "예측값"],
+      textStyle: {
+        fontSize: 20,
+        fontWeight: 500,
+      },
     },
     radar: {
+      center: ["50%", "56%"],
+      radius: "68%",
+      axisName: {
+        fontSize: 20,
+        fontWeight: 500,
+      },
       indicator: metrics.map((item) => {
         return { name: item.name, max: chartMaxValue };
       }),
@@ -90,7 +104,7 @@ export const EBarChart = ({ metrics }) => {
       notMerge={true}
       lazyUpdate={false}
       opts={{ renderer: "canvas" }}
-      style={{ width: "550px", height: "650px" }}
+      style={{ width: "550px", height: "750px" }}
     />
   );
 };

@@ -184,13 +184,11 @@ const Prediction = () => {
                 return (
                   <ResultBox
                     key={item.key}
+                    title={item.title}
+                    status={item.status}
+                    unit={item.unit}
                     currentValue={item.currentValue}
                     predictionValue={item.predictionValue}
-                    title={item.title}
-                    titleColor={item.titleColor}
-                    backgroundColor={item.backgroundColor}
-                    isShadow={item.isShadow}
-                    unit={item.unit}
                     improvementContent={item.improvementContent}
                   />
                 );
@@ -199,7 +197,7 @@ const Prediction = () => {
           </div>
         </div>
         {/* 차트 부분 */}
-        <div className="bigcard" style={{ flex: 1 }}>
+        <div className="bigcard" style={{ flex: 1, padding: 10 }}>
           <EBarChart
             metrics={kpiResultList.map((item) => {
               return {

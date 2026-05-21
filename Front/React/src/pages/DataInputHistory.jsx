@@ -154,7 +154,7 @@ const DataInputHistory = () => {
                       ) : typeof dataHistory[column.key] === "boolean" ? (
                         <CheckBox isChecked={dataHistory[column.key]} />
                       ) : (
-                        dataHistory[column.key]
+                        `${dataHistory[column.key]}${column.unit || ""}`
                       )}
                     </TableData>
                   );
