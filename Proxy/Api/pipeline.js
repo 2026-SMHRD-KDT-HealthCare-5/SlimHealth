@@ -15,7 +15,6 @@ async function predictAll(ocrResult, userInput) {
     age_code:      ageCode,
     height:        ocrResult.height,
     weight:        ocrResult.weight,
-    target_weight: ocrResult.weight - 5,
     waist:         ocrResult.waist,
     sbp:           ocrResult.sbp,
     dbp:           ocrResult.dbp,
