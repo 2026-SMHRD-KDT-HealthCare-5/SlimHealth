@@ -9,6 +9,11 @@ import { Button } from "../components/Button/Button";
 import { useNavigate } from "react-router-dom";
 import { checkDuplicateAccountApi, joinApi } from "../api/userApi";
 import { inputFixWidth } from "../utils/utils";
+import { RadioButton } from "../components/RadioButton/RadioButton";
+
+const MaleCode = "Male";
+const FemaleCode = "Female";
+const maxAge = 200;
 
 const Join = () => {
   const nav = useNavigate();
@@ -17,6 +22,10 @@ const Join = () => {
   const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+
+  const [gender, setGender] = useState("");
+  const [birthYear, setBirthYear] = useState(0);
+
   //비밀번호 확인 input
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -61,6 +70,8 @@ const Join = () => {
         account,
         password,
         name,
+        gender,
+        birthYear,
         email,
         phoneNumber,
       });
@@ -90,11 +101,15 @@ const Join = () => {
 
   //회원가입 인풋 체크
   const checkJoinAble = () => {
+    const date = new Date();
     return (
       isCheckedAccount &&
       password &&
       password === confirmPassword &&
       name &&
+      gender &&
+      date.getFullYear() - 200 <= birthYear &&
+      birthYear <= date.getFullYear() &&
       email &&
       phoneNumber
     );
@@ -153,6 +168,40 @@ const Join = () => {
           title="이름"
           type="text"
           value={name}
+        />
+        <div
+          className="horizontal-flex flex-align-center"
+          style={{ alignItems: "center", gap: 25 }}
+        >
+          <Text>성별</Text>
+          <div className="horizontal-flex" style={{ gap: 20 }}>
+            <RadioButton
+              isChecked={gender === MaleCode}
+              onClick={() => {
+                setGender(gender === MaleCode ? "" : MaleCode);
+              }}
+              title="남성"
+            />
+            <RadioButton
+              isChecked={gender === FemaleCode}
+              onClick={() => {
+                setGender(gender === FemaleCode ? "" : FemaleCode);
+              }}
+              title="여성"
+            />
+          </div>
+          <div></div>
+        </div>
+        <Input
+          fixWidth={inputFixWidth}
+          maxLength={4}
+          onChange={(e) => {
+            setBirthYear(e.target.value);
+          }}
+          placeholder="생년 입력"
+          title="생년"
+          type="number"
+          value={birthYear}
         />
         <Input
           fixWidth={inputFixWidth}

@@ -12,7 +12,7 @@ export const getHealthDataApi = (id) => {
   return new Promise((resolve) => {
     resolve({
       height: 130,
-      age: 30,
+      checkupDate: "1999-08-01",
       weight: 60,
       waist: 300,
       hdl: 20,
@@ -22,7 +22,6 @@ export const getHealthDataApi = (id) => {
       tg: 20,
       isDrink: true,
       isSmoke: false,
-      gender: "남성",
     });
   });
 };
@@ -32,7 +31,7 @@ export const ocrInputApi = (files) => {
   return new Promise((resolve) => {
     resolve({
       height: 170,
-      age: 50,
+      checkupDate: "2000-08-01",
       weight: 70,
       waist: 400,
       hdl: 30,
@@ -40,7 +39,6 @@ export const ocrInputApi = (files) => {
       dbp: 50,
       bs: 60,
       tg: 30,
-      gender: "여성",
     });
   });
 };
@@ -52,66 +50,199 @@ export const getKPIPredictionApi = (id) => {
       result: [
         {
           key: "waist",
-          title: "허리둘레",
+          indicator: "허리둘레",
           status: "위험",
           unit: "cm",
-          currentValue: 150,
-          predictionValue: 170,
-          improvementContent:
+          current_value: 150,
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
         {
           key: "hdl",
-          title: "HDL",
+          indicator: "HDL",
           status: "주의",
           unit: "mg/dl",
-          currentValue: 80,
-          predictionValue: 90,
-          improvementContent:
+          current_value: 80,
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
         {
           key: "bs",
-          title: "혈당",
+          indicator: "혈당",
           status: "정상",
           unit: "mg/dl",
-          currentValue: 100,
-          predictionValue: 130,
-          improvementContent:
+          current_value: 100,
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
         {
           key: "sbp",
-          title: "수축기 혈압",
+          indicator: "수축기 혈압",
           status: "위험",
           unit: "mmHg",
-          currentValue: 90,
-          predictionValue: 160,
-          improvementContent:
+          current_value: 90,
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
         {
           key: "dbp",
-          title: "이완기 혈압",
+          indicator: "이완기 혈압",
           status: "주의",
           unit: "mmHg",
-          currentValue: 90,
-          predictionValue: 160,
-          improvementContent:
+          current_value: 90,
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
         {
           key: "tg",
-          title: "중성지방",
+          indicator: "중성지방",
           status: "정상",
           unit: "mg/dl",
-          currentValue: 30,
-          predictionValue: 50,
-          improvementContent:
+          current_value: 30,
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
       ],
-      weight: 120,
+      weight: 85,
+      max_loss_kg: 15,
+      current_bmi: 27.6,
+      predictions: {
+        "1kg": {
+          target_weight: 80.9,
+          waist: 87.2,
+          sbp: 140.1,
+          dbp: 90.3,
+          bs: 97.4,
+          tg: 105,
+          hdl: 42.2,
+        },
+        "2kg": {
+          target_weight: 79.9,
+          waist: 86.5,
+          sbp: 139.3,
+          dbp: 89.8,
+          bs: 96.7,
+          tg: 103.6,
+          hdl: 42.4,
+        },
+        "3kg": {
+          target_weight: 78.9,
+          waist: 85.9,
+          sbp: 138.4,
+          dbp: 89.2,
+          bs: 96,
+          tg: 102.3,
+          hdl: 42.5,
+        },
+        "4kg": {
+          target_weight: 77.9,
+          waist: 85.1,
+          sbp: 137.5,
+          dbp: 88.6,
+          bs: 95.4,
+          tg: 101.1,
+          hdl: 42.7,
+        },
+        "5kg": {
+          target_weight: 76.9,
+          waist: 84.4,
+          sbp: 136.7,
+          dbp: 88,
+          bs: 94.7,
+          tg: 99.9,
+          hdl: 42.9,
+        },
+        "6kg": {
+          target_weight: 75.9,
+          waist: 83.7,
+          sbp: 135.8,
+          dbp: 87.4,
+          bs: 94,
+          tg: 98.6,
+          hdl: 43.1,
+        },
+        "7kg": {
+          target_weight: 74.9,
+          waist: 83,
+          sbp: 135,
+          dbp: 86.8,
+          bs: 93.4,
+          tg: 97.5,
+          hdl: 43.2,
+        },
+        "8kg": {
+          target_weight: 73.9,
+          waist: 82.2,
+          sbp: 134.1,
+          dbp: 86.2,
+          bs: 92.7,
+          tg: 96.6,
+          hdl: 43.4,
+        },
+        "9kg": {
+          target_weight: 72.9,
+          waist: 81.4,
+          sbp: 133.2,
+          dbp: 85.6,
+          bs: 92,
+          tg: 95.4,
+          hdl: 43.6,
+        },
+        "10kg": {
+          target_weight: 71.9,
+          waist: 80.7,
+          sbp: 132.4,
+          dbp: 85,
+          bs: 91.4,
+          tg: 93.7,
+          hdl: 43.8,
+        },
+        "11kg": {
+          target_weight: 70.9,
+          waist: 79.9,
+          sbp: 131.5,
+          dbp: 84.4,
+          bs: 90.7,
+          tg: 92.4,
+          hdl: 43.9,
+        },
+        "12kg": {
+          target_weight: 69.9,
+          waist: 79.1,
+          sbp: 130.6,
+          dbp: 83.8,
+          bs: 90.1,
+          tg: 91.2,
+          hdl: 44.1,
+        },
+        "13kg": {
+          target_weight: 68.9,
+          waist: 78.4,
+          sbp: 129.8,
+          dbp: 83.2,
+          bs: 89.4,
+          tg: 90.2,
+          hdl: 44.3,
+        },
+        "14kg": {
+          target_weight: 67.9,
+          waist: 77.6,
+          sbp: 128.9,
+          dbp: 82.6,
+          bs: 88.8,
+          tg: 89.1,
+          hdl: 44.5,
+        },
+        "15kg": {
+          target_weight: 66.9,
+          waist: 76.8,
+          sbp: 128,
+          dbp: 82,
+          bs: 88.1,
+          tg: 87.9,
+          hdl: 44.6,
+        },
+      },
     });
   });
 };
@@ -132,29 +263,13 @@ export const getSummaryResultApi = (id) => {
 //개선사항 리스트 api
 export const getImprovementListApi = (id) => {
   return new Promise((resolve) => {
-    resolve([
-      {
-        id: 1,
-        content:
-          "중성지방 수치가 다소 높습니다. 포화지방과 당분 섭취를 줄이고, 오메가-3 지방산이 풍부한 생선을 주 2-3회 섭취하세요.",
-        iconType: "heart",
-        title: "식습관 개선",
-      },
-      {
-        id: 2,
-        content:
-          "중성지방 수치가 다소 높습니다. 포화지방과 당분 섭취를 줄이고, 오메가-3 지방산이 풍부한 생선을 주 2-3회 섭취하세요.",
-        iconType: "check",
-        title: "식습관 개선",
-      },
-      {
-        id: 3,
-        content:
-          "중성지방 수치가 다소 높습니다. 포화지방과 당분 섭취를 줄이고, 오메가-3 지방산이 풍부한 생선을 주 2-3회 섭취하세요.",
-        iconType: "lightning",
-        title: "식습관 개선",
-      },
-    ]);
+    resolve({
+      diet: "짠 음식과 가공식품 섭취를 줄이고, 채소와 통곡물 위주의 식단을 실천하세요. 규칙적인 식사와 과식 피하기가 중요합니다.",
+      exercise:
+        "매일 30분 이상 중등도 유산소 운동(걷기, 조깅 등)과 주 2회 근력 운동을 병행하세요. 꾸준함이 가장 중요합니다.",
+      habit:
+        "현재 흡연 중이시므로 금연은 가장 시급하고 중요한 과제입니다. 음주량도 줄이고 충분한 수면을 취하며 스트레스를 관리하세요.",
+    });
   });
 };
 

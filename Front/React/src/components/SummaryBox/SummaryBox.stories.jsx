@@ -12,7 +12,7 @@ export default {
 };
 export const Default = {
   args: {
-    grade: "danger",
+    grade: "위험",
     title: "건강 주의보! 지금 바로 확인하세요!",
     score: 72,
     description:

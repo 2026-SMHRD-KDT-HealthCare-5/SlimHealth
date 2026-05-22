@@ -15,10 +15,7 @@ import { CheckBox } from "../components/CheckBox/CheckBox";
 import { RadioButton } from "../components/RadioButton/RadioButton";
 import { predictionPath } from "../App";
 
-const MaleCode = "남성";
-const FemaleCode = "여성";
-
-const ocrImageSize = 489;
+const ocrImageSize = 509;
 
 const DataInput = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -30,7 +27,6 @@ const DataInput = () => {
 
   const [formData, setFormData] = useState({
     height: 0,
-    age: 0,
     weight: 0,
     waist: 0,
     hdl: 0,
@@ -40,9 +36,10 @@ const DataInput = () => {
     tg: 0,
   });
 
-  const [gender, setGender] = useState("");
   const [isDrink, setIsDrink] = useState(false);
   const [isSmoke, setIsSmoke] = useState(false);
+
+  const [checkupDate, setCheckupDate] = useState("");
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({
@@ -80,7 +77,7 @@ const DataInput = () => {
       const data = await ocrInputApi(files);
 
       setFormData(data);
-      setGender(data.gender);
+      setCheckupDate(data.checkupDate);
     } catch (e) {
       console.log(e);
     }
@@ -88,12 +85,18 @@ const DataInput = () => {
 
   //저장 버튼 활성화 여부
   const isSaveButtonDisable =
-    inputFields.some((item) => !formData[item.key]) || !gender;
+    inputFields.some((item) => !formData[item.key]) || !checkupDate;
 
   //데이터 저장 버튼
   const handleSaveData = async () => {
     try {
-      await saveHealthDataApi({ ...formData, isDrink, isSmoke, gender, id });
+      await saveHealthDataApi({
+        ...formData,
+        checkupDate,
+        isDrink,
+        isSmoke,
+        id,
+      });
 
       openDialog(
         "데이터 저장 성공", //title
@@ -129,7 +132,7 @@ const DataInput = () => {
         setFormData(data);
         setIsDrink(data.isDrink);
         setIsSmoke(data.isSmoke);
-        setGender(data.gender);
+        setCheckupDate(data.checkupDate);
       } catch (e) {
         console.log(e);
       }
@@ -160,28 +163,6 @@ const DataInput = () => {
       <div className="horizontal-flex">
         {/* 데이터 입력 부분 */}
         <div className="vertical-flex">
-          <div
-            className="horizontal-flex flex-align-end"
-            style={{ alignItems: "center", gap: 30 }}
-          >
-            <Text>성별</Text>
-            <div className="horizontal-flex" style={{ gap: 30 }}>
-              <RadioButton
-                isChecked={gender === MaleCode}
-                onClick={() => {
-                  setGender(gender === MaleCode ? "" : MaleCode);
-                }}
-                title="남성"
-              />
-              <RadioButton
-                isChecked={gender === FemaleCode}
-                onClick={() => {
-                  setGender(gender === FemaleCode ? "" : FemaleCode);
-                }}
-                title="여성"
-              />
-            </div>
-          </div>
           {inputFields.map((item) => {
             return (
               <Input
@@ -197,6 +178,28 @@ const DataInput = () => {
             );
           })}
           <div style={{ height: 20 }}></div>
+          <div className="horizontal-flex flex-align-center">
+            <div style={{ width: 30 }}></div>
+            <Text>검진날짜</Text>
+            <input
+              type="date"
+              value={checkupDate}
+              onChange={(e) => {
+                setCheckupDate(e.target.value);
+              }}
+              max="9999-12-31"
+              style={{
+                width: "220px",
+                height: "44px",
+                padding: "0 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "10px",
+                fontSize: "16px",
+                outline: "none",
+              }}
+            />
+          </div>
+          <div style={{ height: 30 }}></div>
           <div className="vertical-flex flex-align-center">
             <CheckBox
               isChecked={isDrink}
