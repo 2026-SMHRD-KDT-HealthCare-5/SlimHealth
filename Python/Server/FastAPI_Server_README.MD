@@ -33,7 +33,6 @@ python FastAPI.py
 | `age_code` | int | 나이 코드 (7~12, 아래 참고) |
 | `height` | float | 키 (cm) |
 | `weight` | float | 현재 체중 (kg) |
-| `target_weight` | float | 목표 체중 (kg) |
 | `waist` | float | 허리둘레 (cm) |
 | `sbp` | float | 수축기혈압 (mmHg) |
 | `dbp` | float | 이완기혈압 (mmHg) |
@@ -60,55 +59,13 @@ python FastAPI.py
 
 ## 🔗 API 엔드포인트
 
-### 1. `POST /predict` — 단일 목표 체중 예측
 
-입력한 목표 체중 기준으로 6개 지표의 예측값을 반환합니다.
 
-**요청 예시**
-```json
-{
-  "gender": 1,
-  "age_code": 9,
-  "height": 170.0,
-  "weight": 80.0,
-  "target_weight": 70.0,
-  "waist": 88.0,
-  "sbp": 128.0,
-  "dbp": 82.0,
-  "bs": 102.0,
-  "tg": 160.0,
-  "hdl": 42.0,
-  "smoke": 0,
-  "drink": 1
-}
-```
-
-**응답 예시**
-```json
-{
-  "waist": { "current": 88.0, "predicted": 84.2, "delta": -3.8, "mae": 2.1, "unit": "cm" },
-  "sbp":   { "current": 128.0, "predicted": 123.5, "delta": -4.5, "mae": 5.2, "unit": "mmHg" },
-  "dbp":   { "current": 82.0, "predicted": 79.1, "delta": -2.9, "mae": 3.8, "unit": "mmHg" },
-  "bs":    { "current": 102.0, "predicted": 97.3, "delta": -4.7, "mae": 6.1, "unit": "mg/dL" },
-  "tg":    { "current": 160.0, "predicted": 143.2, "delta": -16.8, "mae": 18.4, "unit": "mg/dL" },
-  "hdl":   { "current": 42.0, "predicted": 44.1, "delta": 2.1, "mae": 3.5, "unit": "mg/dL" }
-}
-```
-
-**에러 응답**
-```json
-{ "error": "increase", "message": "목표 체중이 현재 체중보다 높습니다." }
-{ "error": "same",     "message": "목표 체중이 현재 체중과 같습니다." }
-```
-
----
-
-### 2. `POST /predict-all` — 1kg 단위 전체 예측 (슬라이더용)
+###  `POST /predict-all` — 1kg 단위 전체 예측 (슬라이더용)
 
 1kg부터 BMI 기반 최대 감량까지 모든 구간의 예측값을 한 번에 반환합니다.
 프론트엔드 슬라이더 초기화 시 사용합니다.
 
-**요청 파라미터**: `/predict`와 동일 (`target_weight`는 내부적으로 무시됨)
 
 **응답 예시**
 ```json
