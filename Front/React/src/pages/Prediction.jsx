@@ -19,15 +19,12 @@ import character4 from "../assets/character4.png";
 import character5 from "../assets/character5.png";
 import { EBarChart } from "../components/EBarChart/EBarChart";
 import {
-  getSliderImageIndex,
+  getCurrentCharacterStage,
   sliderImageList,
   sliderValueToWeight,
   weightToSliderValue,
 } from "../utils/utils";
 import { useSearchParams } from "react-router-dom";
-
-const sliderMaxValue = 140;
-const sliderMinValue = 71;
 
 const Prediction = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -36,6 +33,10 @@ const Prediction = () => {
 
   //슬라이더 부분
   const [sliderValue, setSliderValue] = useState(0);
+  const [sliderMaxValue, setSliderMaxValue] = useState(0);
+  const [sliderMinValue, setSliderMinValue] = useState(0);
+  const [bmi, setBmi] = useState(0);
+  const [maxLossKg, setMaxLossKg] = useState(0);
   const [weight, setWeight] = useState(0);
   const [currentSliderImage, setCurrentSliderImage] = useState(
     sliderImageList[0],
@@ -48,7 +49,7 @@ const Prediction = () => {
   const [kpiResultList, setKpiResultList] = useState([]);
 
   //개선사항 부분
-  const [improvementList, setImprovementList] = useState([]);
+  const [improvementList, setImprovementList] = useState({});
 
   //긴 분석내용 부분
   const [analysisContent, setAnalysisContent] = useState("");
@@ -56,14 +57,22 @@ const Prediction = () => {
   const handleChangeSlider = (value, isSetResult) => {
     setSliderValue(value);
 
-    setCurrentSliderImage(sliderImageList[getSliderImageIndex(value)]);
-
     const tempWeight = sliderValueToWeight(
       value,
       sliderMaxValue,
       sliderMinValue,
     );
     setWeight(tempWeight);
+
+    setCurrentSliderImage(
+      sliderImageList[
+        getCurrentCharacterStage({
+          bmi,
+          currentLossKg: sliderMaxValue - tempWeight,
+          maxLossKg,
+        }) - 1
+      ],
+    );
 
     //예측 부분 조정
     if (isSetResult) {
@@ -85,17 +94,34 @@ const Prediction = () => {
         //5대지표 예측결과 설정
         setKpiResultList(data.result);
 
+        const tempSliderMaxValue = data.weight;
+        setSliderMaxValue(tempSliderMaxValue);
+        const tempSliderMinValue = data.weight - data.max_loss_kg;
+        setSliderMinValue(tempSliderMinValue);
+
         const tempWeight = data.weight;
         setWeight(tempWeight);
+        const tempBmi = data.current_bmi;
+        setBmi(tempBmi);
+        const tempMaxLossKg = data.max_loss_kg;
+        setMaxLossKg(tempMaxLossKg);
 
         const sliderVal = weightToSliderValue(
           tempWeight,
-          sliderMaxValue,
-          sliderMinValue,
+          tempSliderMaxValue,
+          tempSliderMinValue,
         );
         setSliderValue(sliderVal);
 
-        setCurrentSliderImage(sliderImageList[getSliderImageIndex(sliderVal)]);
+        setCurrentSliderImage(
+          sliderImageList[
+            getCurrentCharacterStage({
+              bmi: tempBmi,
+              currentLossKg: tempSliderMaxValue - tempWeight,
+              maxLossKg: tempMaxLossKg,
+            }) - 1
+          ],
+        );
       } catch (e) {
         console.log(e);
       }
@@ -154,7 +180,7 @@ const Prediction = () => {
             <div className="vertical-flex flex-align-center" style={{ gap: 0 }}>
               <img
                 src={currentSliderImage}
-                style={{ width: 160, height: 361 }}
+                style={{ width: 270, height: 361 }}
               />
               <Slider
                 onChange={(value) => {
@@ -222,16 +248,25 @@ const Prediction = () => {
         <div style={{ width: 850 }}>
           <Text textStyle={"medium"}>개선사항</Text>
         </div>
-        {improvementList.map((item) => {
-          return (
+        {improvementList && (
+          <>
             <ImprovementBox
-              key={item.id}
-              content={item.content}
-              iconType={item.iconType}
-              title={item.title}
+              content={improvementList.diet}
+              iconType={"heart"}
+              title={"식습관 개선"}
             />
-          );
-        })}
+            <ImprovementBox
+              content={improvementList.exercise}
+              iconType={"lightning"}
+              title={"운동하기"}
+            />
+            <ImprovementBox
+              content={improvementList.habit}
+              iconType={"check"}
+              title={"생활습관 개선"}
+            />
+          </>
+        )}
       </div>
       <div style={{ height: 30 }}></div>
       {/* 긴 분석내용 부분 */}

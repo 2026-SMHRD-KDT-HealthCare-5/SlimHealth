@@ -111,7 +111,9 @@ export const getKPIPredictionApi = (id) => {
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
       ],
-      weight: 120,
+      weight: 85,
+      max_loss_kg: 20,
+      current_bmi: 32,
     });
   });
 };
@@ -132,29 +134,13 @@ export const getSummaryResultApi = (id) => {
 //개선사항 리스트 api
 export const getImprovementListApi = (id) => {
   return new Promise((resolve) => {
-    resolve([
-      {
-        id: 1,
-        content:
-          "중성지방 수치가 다소 높습니다. 포화지방과 당분 섭취를 줄이고, 오메가-3 지방산이 풍부한 생선을 주 2-3회 섭취하세요.",
-        iconType: "heart",
-        title: "식습관 개선",
-      },
-      {
-        id: 2,
-        content:
-          "중성지방 수치가 다소 높습니다. 포화지방과 당분 섭취를 줄이고, 오메가-3 지방산이 풍부한 생선을 주 2-3회 섭취하세요.",
-        iconType: "check",
-        title: "식습관 개선",
-      },
-      {
-        id: 3,
-        content:
-          "중성지방 수치가 다소 높습니다. 포화지방과 당분 섭취를 줄이고, 오메가-3 지방산이 풍부한 생선을 주 2-3회 섭취하세요.",
-        iconType: "lightning",
-        title: "식습관 개선",
-      },
-    ]);
+    resolve({
+      diet: "짠 음식과 가공식품 섭취를 줄이고, 채소와 통곡물 위주의 식단을 실천하세요. 규칙적인 식사와 과식 피하기가 중요합니다.",
+      exercise:
+        "매일 30분 이상 중등도 유산소 운동(걷기, 조깅 등)과 주 2회 근력 운동을 병행하세요. 꾸준함이 가장 중요합니다.",
+      habit:
+        "현재 흡연 중이시므로 금연은 가장 시급하고 중요한 과제입니다. 음주량도 줄이고 충분한 수면을 취하며 스트레스를 관리하세요.",
+    });
   });
 };
 

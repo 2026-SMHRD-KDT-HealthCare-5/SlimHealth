@@ -3,6 +3,15 @@ import character2 from "../assets/character2.png";
 import character3 from "../assets/character3.png";
 import character4 from "../assets/character4.png";
 import character5 from "../assets/character5.png";
+import pCharacter1 from "../assets/p_character1.png";
+import pCharacter2 from "../assets/p_character2.png";
+import pCharacter3 from "../assets/p_character3.png";
+import pCharacter4 from "../assets/p_character4.png";
+import pCharacter5 from "../assets/p_character5.png";
+import pCharacter6 from "../assets/p_character6.png";
+import pCharacter7 from "../assets/p_character7.png";
+import pCharacter8 from "../assets/p_character8.png";
+import pCharacter9 from "../assets/p_character9.png";
 import { sliderWidth } from "../components/Slider";
 
 export const userInfoKey = "userInfo";
@@ -84,15 +93,109 @@ export const totalInputFields = [
 
 //슬라이더 이미지 url은 나중에 정해지면 변경하기
 export const sliderImageList = [
-  character1,
-  character2,
-  character3,
-  character4,
-  character5,
+  pCharacter1,
+  pCharacter2,
+  pCharacter3,
+  pCharacter4,
+  pCharacter5,
+  pCharacter6,
+  pCharacter7,
+  pCharacter8,
+  pCharacter9,
 ];
 
-export const getSliderImageIndex = (sliderValue) => {
-  return parseInt(sliderValue / ((sliderWidth + 1) / sliderImageList.length));
+export const getCharacterRange = (bmi) => {
+  // 매우 심한 비만
+  if (bmi >= 40) {
+    return {
+      startStage: 1,
+      endStage: 6,
+      label: "매우 심한 비만",
+    };
+  }
+
+  // 초고도 비만
+  if (bmi >= 38) {
+    return {
+      startStage: 2,
+      endStage: 6,
+      label: "초고도 비만",
+    };
+  }
+
+  // 고도 비만
+  if (bmi >= 35) {
+    return {
+      startStage: 3,
+      endStage: 7,
+      label: "고도 비만",
+    };
+  }
+
+  // 비만
+  if (bmi >= 30) {
+    return {
+      startStage: 4,
+      endStage: 7,
+      label: "비만",
+    };
+  }
+
+  // 과체중
+  if (bmi >= 27) {
+    return {
+      startStage: 5,
+      endStage: 8,
+      label: "과체중",
+    };
+  }
+
+  // 약간 통통
+  if (bmi >= 25) {
+    return {
+      startStage: 6,
+      endStage: 8,
+      label: "약간 통통",
+    };
+  }
+
+  // 정상
+  if (bmi >= 22) {
+    return {
+      startStage: 7,
+      endStage: 9,
+      label: "정상",
+    };
+  }
+
+  // 날씬
+  if (bmi >= 18.5) {
+    return {
+      startStage: 8,
+      endStage: 9,
+      label: "날씬",
+    };
+  }
+
+  // 매우 날씬
+  return {
+    startStage: 9,
+    endStage: 9,
+    label: "매우 날씬",
+  };
+};
+
+export const getCurrentCharacterStage = ({ bmi, currentLossKg, maxLossKg }) => {
+  const { startStage, endStage } = getCharacterRange(bmi);
+
+  // 감량 진행률
+  const progress = Math.min(currentLossKg / maxLossKg, 1);
+
+  // 현재 단계 계산
+  const currentStage =
+    startStage + Math.round((endStage - startStage) * progress);
+
+  return currentStage;
 };
 
 export const sliderValueToWeight = (
@@ -101,7 +204,8 @@ export const sliderValueToWeight = (
   sliderMinValue,
 ) => {
   return parseInt(
-    sliderMaxValue - (sliderValue / sliderWidth) * sliderMinValue,
+    sliderMaxValue -
+      (sliderValue / sliderWidth) * (sliderMaxValue - sliderMinValue),
   );
 };
 
