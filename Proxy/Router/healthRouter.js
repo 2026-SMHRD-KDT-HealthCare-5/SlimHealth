@@ -72,9 +72,12 @@ router.post("/create", async (req, res) =>{
                 isDrink: inputDrink, } = req.body;
         const inputBMI = inputWeight / ((inputHeight / 100) * (inputHeight / 100));
 
-        const sqlCreatePhysical = ` INSERT INTO tbl_physical ( height, weight, bmi, sbp, dbp,  bs, tg, hdl, waist, smoke, drink  ) 
-                        VALUES ( ?, ?, ?, ?, ?,   ?, ?, ?, ?, ?, ?  )`
+        const sqlCreatePhysical = ` INSERT INTO tbl_physical ( user_idx, height, weight, bmi, sbp, dbp,  bs, tg, hdl, waist, smoke, drink  ) 
+                        VALUES ( ?, ?, ?, ?, ?, ?,   ?, ?, ?, ?, ?, ?  )`
+
+        const sessionUserIdx = "1"  // 유저인덱스 하드코딩 -> 세션개발전까지. 
         const [result] = await conn.query(sqlCreatePhysical, [  
+            sessionUserIdx,
             inputHeight, 
             inputWeight, 
             inputBMI, 
@@ -170,7 +173,7 @@ router.post("/list", async (req, res) =>{
 
 
 // 예측 페이지를 위한 조회 3R ( 완료 )
-router.post("/predict/:physical_idx", async (req, res) =>{
+router.get("/predict/:physical_idx", async (req, res) =>{
     // 우리 예측 페이지... 를 위한 예측데이터 보내기
     try{
         const physicalIdx = req.params.physical_idx;
@@ -195,8 +198,8 @@ router.post("/predict/:physical_idx", async (req, res) =>{
     }
 })
 
-// 건데 수정과 같이 예데 삭제 후 재예측 ( 완료 )
-router.post("/update/:physical_idx", async (req, res) =>{
+// 건데 수정 -> 예데 삭제 -> 예데 재예측 ( 완료 )
+router.get("/update/:physical_idx", async (req, res) =>{
 
     try{
         const physicalIdx = req.params.physical_idx;
@@ -312,7 +315,7 @@ router.post("/update/:physical_idx", async (req, res) =>{
 
 
 // 건데 삭제 및 연관 예데 삭제 ( 완료 )
-router.post("/delete/:physical_idx", async (req, res) =>{
+router.get("/delete/:physical_idx", async (req, res) =>{
     try{
         const physicalIdx = req.params.physical_idx;
 
