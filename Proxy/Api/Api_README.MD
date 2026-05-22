@@ -193,7 +193,6 @@ const advice = await getHealthAdvice(ocrResult, userInput, currentMetrics, predi
       "indicator": "허리둘레",
       "status": "위험",
       "current_value": "88cm",
-      "standard": "남성 90cm 미만",
       "message": "현재 기준에 근접한 수치입니다. 복부 비만 관리가 필요합니다."
     }
   ],

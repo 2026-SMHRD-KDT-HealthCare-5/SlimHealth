@@ -72,7 +72,6 @@ HDL: ${hdlThreshold}mg/dL 미만
       "indicator": "지표명",
       "status": "정상 또는 주의 또는 위험 중 하나",
       "current_value": "현재 수치와 단위",
-      "standard": "정상 기준 설명",
       "message": "현재 상태 설명 (2문장 이내)"
     }
   ],
