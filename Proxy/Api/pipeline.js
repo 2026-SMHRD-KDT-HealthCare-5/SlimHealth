@@ -26,7 +26,7 @@ async function predictAll(ocrResult, userInput) {
     drink:         userInput.drink,
   };
 
-  const response = await axios.post('http://localhost:8000/predict-all', apiData);
+  const response = await axios.post('http://localhost:8081/predict-all', apiData);
   return { apiData, result: response.data };
 }
 
@@ -35,7 +35,6 @@ async function main() {
     // ── 설정 ────────────────────────────────────────────────
     const fileNames = ['진종언 24_1.png', '진종언 24_2.png', '진종언 24_3.png'];
     const userInput = { smoke: 1, drink: 1 };  // 프론트에서 받을 값
-    const targetKg  = 10;                       // 프론트 슬라이더 값
     // ────────────────────────────────────────────────────────
 
     console.log('\n' + '='.repeat(60));
