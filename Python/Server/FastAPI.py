@@ -15,7 +15,6 @@ class UserInput(BaseModel):
     smoke: int
     drink: int
     weight: float
-    target_weight: float
     waist: float
     sbp: float
     dbp: float
@@ -88,19 +87,6 @@ def predict_metrics(inp: pd.DataFrame, data: UserInput) -> dict:
         }
     return result
 
-
-# ── /predict: 단일 목표 체중 예측 ─────────────────────────────
-@app.post("/predict")
-async def predict(data: UserInput):
-    weight_diff = data.weight - data.target_weight
-
-    if weight_diff < 0:
-        return {"error": "increase", "message": "목표 체중이 현재 체중보다 높습니다."}
-    if weight_diff == 0:
-        return {"error": "same", "message": "목표 체중이 현재 체중과 같습니다."}
-
-    inp = build_inp(data, weight_diff)
-    return predict_metrics(inp, data)
 
 
 # ── /predict-all: 1kg 단위 전체 예측 (슬라이더용) ─────────────
