@@ -12,7 +12,7 @@ export const getHealthDataApi = (id) => {
   return new Promise((resolve) => {
     resolve({
       height: 130,
-      age: 30,
+      checkupDate: "1999-08-01",
       weight: 60,
       waist: 300,
       hdl: 20,
@@ -22,7 +22,6 @@ export const getHealthDataApi = (id) => {
       tg: 20,
       isDrink: true,
       isSmoke: false,
-      gender: "남성",
     });
   });
 };
@@ -32,7 +31,7 @@ export const ocrInputApi = (files) => {
   return new Promise((resolve) => {
     resolve({
       height: 170,
-      age: 50,
+      checkupDate: "2000-08-01",
       weight: 70,
       waist: 400,
       hdl: 30,
@@ -40,7 +39,6 @@ export const ocrInputApi = (files) => {
       dbp: 50,
       bs: 60,
       tg: 30,
-      gender: "여성",
     });
   });
 };

@@ -27,11 +27,6 @@ export const inputFields = [
     unit: "cm",
   },
   {
-    title: "나이",
-    placeholder: "현재 나이 입력",
-    key: "age",
-  },
-  {
     title: "체중",
     placeholder: "현재 체중(kg) 입력",
     key: "weight",
@@ -77,6 +72,11 @@ export const inputFields = [
 
 export const totalInputFields = [
   ...inputFields,
+  {
+    title: "나이",
+    placeholder: "현재 나이 입력",
+    key: "age",
+  },
   {
     title: "음주여부",
     key: "isDrink",

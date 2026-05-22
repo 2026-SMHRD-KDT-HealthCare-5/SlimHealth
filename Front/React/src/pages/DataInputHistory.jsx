@@ -23,7 +23,7 @@ const tableColumns = [
     key: "id",
   },
   {
-    title: "날짜",
+    title: "검진날짜",
     key: "date",
   },
   ...totalInputFields,
