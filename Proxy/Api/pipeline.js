@@ -11,7 +11,7 @@ async function predictAll(ocrResult, userInput) {
   }
 
   const apiData = {
-    gender:        ocrResult.gender === "남성" ? 1 : 2,
+    gender:        ocrResult.gender,
     age_code:      ageCode,
     height:        ocrResult.height,
     weight:        ocrResult.weight,
