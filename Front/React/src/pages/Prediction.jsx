@@ -37,6 +37,7 @@ const Prediction = () => {
   const [sliderMinValue, setSliderMinValue] = useState(0);
   const [bmi, setBmi] = useState(0);
   const [maxLossKg, setMaxLossKg] = useState(0);
+  const [predictions, setPredictions] = useState({});
   const [weight, setWeight] = useState(0);
   const [currentSliderImage, setCurrentSliderImage] = useState(
     sliderImageList[0],
@@ -64,11 +65,12 @@ const Prediction = () => {
     );
     setWeight(tempWeight);
 
+    const currentLossKg = sliderMaxValue - tempWeight;
     setCurrentSliderImage(
       sliderImageList[
         getCurrentCharacterStage({
           bmi,
-          currentLossKg: sliderMaxValue - tempWeight,
+          currentLossKg,
           maxLossKg,
         }) - 1
       ],
@@ -79,7 +81,10 @@ const Prediction = () => {
       setKpiResultList((prev) =>
         prev.map((item) => ({
           ...item,
-          predictionValue: parseInt(80 + value),
+          predictionValue:
+            currentLossKg == 0
+              ? item.current_value
+              : predictions[`${currentLossKg}kg`][item.key],
         })),
       );
     }
@@ -91,8 +96,9 @@ const Prediction = () => {
     const fetchKPIPrediction = async () => {
       try {
         const data = await getKPIPredictionApi(id);
-        //5대지표 예측결과 설정
-        setKpiResultList(data.result);
+
+        const tempPredictions = data.predictions;
+        setPredictions(tempPredictions);
 
         const tempSliderMaxValue = data.weight;
         setSliderMaxValue(tempSliderMaxValue);
@@ -121,6 +127,13 @@ const Prediction = () => {
               maxLossKg: tempMaxLossKg,
             }) - 1
           ],
+        );
+
+        //5대지표 예측결과 설정
+        setKpiResultList(
+          data.result.map((item) => {
+            return { ...item, predictionValue: item.current_value };
+          }),
         );
       } catch (e) {
         console.log(e);

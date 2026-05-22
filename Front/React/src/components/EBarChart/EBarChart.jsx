@@ -4,6 +4,8 @@ import * as echarts from "echarts";
 import "../../index.css";
 
 const chartMaxValue = 400;
+const currentColor = "#5470c6";
+const predictionColor = "#a3cc75";
 
 export const EBarChart = ({ metrics }) => {
   // const option = {
@@ -85,13 +87,24 @@ export const EBarChart = ({ metrics }) => {
         type: "radar",
         data: [
           {
-            name: "현재값",
-            value: metrics.map((item) => item.current),
-          },
-
-          {
             name: "예측값",
             value: metrics.map((item) => item.target),
+            itemStyle: {
+              color: predictionColor,
+            },
+            lineStyle: {
+              color: predictionColor,
+            },
+          },
+          {
+            name: "현재값",
+            value: metrics.map((item) => item.current),
+            itemStyle: {
+              color: currentColor,
+            },
+            lineStyle: {
+              color: currentColor,
+            },
           },
         ],
       },
