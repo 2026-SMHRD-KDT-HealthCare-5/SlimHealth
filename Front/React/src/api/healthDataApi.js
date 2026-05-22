@@ -52,62 +52,62 @@ export const getKPIPredictionApi = (id) => {
       result: [
         {
           key: "waist",
-          title: "허리둘레",
+          indicator: "허리둘레",
           status: "위험",
           unit: "cm",
-          currentValue: 150,
+          current_value: 150,
           predictionValue: 170,
-          improvementContent:
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
         {
           key: "hdl",
-          title: "HDL",
+          indicator: "HDL",
           status: "주의",
           unit: "mg/dl",
-          currentValue: 80,
+          current_value: 80,
           predictionValue: 90,
-          improvementContent:
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
         {
           key: "bs",
-          title: "혈당",
+          indicator: "혈당",
           status: "정상",
           unit: "mg/dl",
-          currentValue: 100,
+          current_value: 100,
           predictionValue: 130,
-          improvementContent:
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
         {
           key: "sbp",
-          title: "수축기 혈압",
+          indicator: "수축기 혈압",
           status: "위험",
           unit: "mmHg",
-          currentValue: 90,
+          current_value: 90,
           predictionValue: 160,
-          improvementContent:
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
         {
           key: "dbp",
-          title: "이완기 혈압",
+          indicator: "이완기 혈압",
           status: "주의",
           unit: "mmHg",
-          currentValue: 90,
+          current_value: 90,
           predictionValue: 160,
-          improvementContent:
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
         {
           key: "tg",
-          title: "중성지방",
+          indicator: "중성지방",
           status: "정상",
           unit: "mg/dl",
-          currentValue: 30,
+          current_value: 30,
           predictionValue: 50,
-          improvementContent:
+          message:
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
       ],

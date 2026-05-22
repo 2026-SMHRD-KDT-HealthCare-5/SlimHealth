@@ -188,12 +188,12 @@ const Prediction = () => {
                 return (
                   <ResultBox
                     key={item.key}
-                    title={item.title}
+                    title={item.indicator}
                     status={item.status}
                     unit={item.unit}
-                    currentValue={item.currentValue}
+                    currentValue={item.current_value}
                     predictionValue={item.predictionValue}
-                    improvementContent={item.improvementContent}
+                    improvementContent={item.message}
                   />
                 );
               })}
@@ -205,8 +205,8 @@ const Prediction = () => {
           <EBarChart
             metrics={kpiResultList.map((item) => {
               return {
-                current: item.currentValue,
-                name: item.title,
+                current: item.current_value,
+                name: item.indicator,
                 target: item.predictionValue,
               };
             })}
