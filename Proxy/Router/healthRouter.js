@@ -43,6 +43,10 @@ const router = express.Router();
 const conn = require("../config/database")
 const axios = require("axios");
 const pythonFastAPI = require("../config/pythonFastAPI");
+const mockupUserIdx = "1"
+// 세션대신 넣은 하드코딩 유저번호
+
+
 
 
 // 건데 생성과 예데 생성(완료) 23C
@@ -54,8 +58,7 @@ router.post("/create", async (req, res) =>{
     try{
 
 
-        const mockupUserIdx = "1"
-        // 세션대신 넣은 하드코딩 유저번호
+
 
         // 리액트에서 받은 데이터 분석
                 // 2테이블에 인서트할 인수정의
@@ -78,7 +81,7 @@ router.post("/create", async (req, res) =>{
                 checkupDate : inputCheckup
             } = req.body;
 
-        const inputBMI = inputWeight / ((inputHeight / 100) * (inputHeight / 100));
+
 
         const sqlCreatePhysical = ` 
             INSERT INTO tbl_physical ( user_idx, height, weight, sbp, dbp, bs, tg, hdl, waist, smoke, drink, checkup_date ) 
@@ -99,31 +102,32 @@ router.post("/create", async (req, res) =>{
         const tempbirth = 1980
         const age = parseInt(String(inputCheckup).substring(0, 4)) - tempbirth;
 
-        // 🎯 [교정] 유저님이 주신 새로운 연령대 코드 규칙 완벽 적용
-        let ageCode = 10; // 범위 밖을 대비한 기본 디폴트값
 
+        let ageCode = 10; // 범위 밖을 대비한 기본 디폴트값
         if (age >= 25 && age <= 34) {
             ageCode = 7;   // 25~29세, 30~34세 둘 다 7
-        } else if (age >= 35 && age <= 39) {
-            ageCode = 8;
-        } else if (age >= 40 && age <= 44) {
-            ageCode = 9;
-        } else if (age >= 45 && age <= 49) {
-            ageCode = 10;  // 현재 46세인 유저분은 여기에 걸려 정상적으로 10이 됩니다!
-        } else if (age >= 50 && age <= 54) {
-            ageCode = 11;
-        } else if (age >= 55 && age <= 59) {
-            ageCode = 12;
-        } else if (age > 59) {
-            ageCode = 13;  // 60세 이상 예외 방어막 (필요시 조절)
-        } else {
-            ageCode = 6;   // 24세 이하 예외 방어막 (필요시 조절)
-        }
+            } else if (age >= 35 && age <= 39) {
+                ageCode = 8;
+            } else if (age >= 40 && age <= 44) {
+                ageCode = 9;
+            } else if (age >= 45 && age <= 49) {
+                ageCode = 10;  // 현재 46세인 유저분은 여기에 걸려 정상적으로 10이 됩니다!
+            } else if (age >= 50 && age <= 54) {
+                ageCode = 11;
+            } else if (age >= 55 && age <= 59) {
+                ageCode = 12;
+            } else if (age > 59) {
+                ageCode = 13;  // 60세 이상 예외 방어막 (필요시 조절)
+            } else {
+                ageCode = 6;   // 24세 이하 예외 방어막 (필요시 조절)
+            }
+        const calBMI = inputWeight / ((inputHeight / 100) * (inputHeight / 100));;
+
 
         const tempGender = 1; // 1: 남성 / 2: 여성
 
         // 프론트의 변수를 파이선용으로 파싱
-        const pythonPayload = { 
+        const pyPayload = { 
             height: Number(inputHeight),
             weight: Number(inputWeight),
             sbp:    Number(inputSbp),
@@ -136,42 +140,39 @@ router.post("/create", async (req, res) =>{
             drink:  Number(inputDrink),
             age:    Number(age),
             gender: Number(tempGender),
-            age_code: Number(ageCode) // 🎯 새로 정렬된 정확한 연령대 코드가 파이썬으로 날아갑니다.
+            age_code: Number(ageCode),
+            bmi :   Number(calBMI)
         };
 
-        const pyRes = await axios.post(pythonFastAPI.predictAllUrl, pythonPayload) 
+        const pyRes = await axios.post(pythonFastAPI.predictAllUrl, pyPayload) ;
         // 파이선에 받은의료정보(req.body)를 ~주소로 보냅니다.
-        const analysisData = pyRes.data // 받은값을 변수에 저장
-        console.log("🎁 파이썬이 돌려준 예측 데이터 구조:", JSON.stringify(analysisData, null, 2));
+        const analysisData = pyRes.data; 
 
 
-        // 3tb 비동기, 인서트
-            // 루프문으로 kg당 하나씩 DB입력 
-            // ==========================================
-                // 🎯 3tb 비동기 인서트 루프 (DBMS 자동 시간 적용 버전 🚀)
-                // ==========================================
+        // 3tb 비동기, 인서트 (kg당 하나씩 DB입력) 
+
                 for (const kgKey in analysisData.predictions) {
                     const targetData = analysisData.predictions[kgKey]; 
-
                     const lossKg = parseInt(kgKey); 
-                    const predictHeight = Number(inputHeight);
-                    const predictWeight = Number(inputWeight) - lossKg;
 
-                    const predictwaist = targetData.waist.predicted;
+                    const predictHeight = inputHeight;
+                    const predictWeight = parseFloat((inputWeight - lossKg).toFixed(1));
+
+                    const predictWaist = targetData.waist.predicted;
                     const predictSbp   = targetData.sbp.predicted;
                     const predictDbp   = targetData.dbp.predicted;
                     const predictBs    = targetData.bs.predicted;
                     const predictTg    = targetData.tg.predicted;
                     const predictHdl   = targetData.hdl.predicted;
 
-                    // 🎯 [교정] SQL 구문에서 analyzed_at 컬럼과 맨 마지막 물음표(?)를 제거합니다!
+
                     const sql_create_predictdata = `
                         INSERT INTO tbl_analysis ( physical_idx, height, weight, weight_loss, sbp, dbp, bs, tg, hdl, waist ) 
                         VALUES                   ( ?,            ?,      ?,      ?,           ?,   ?,   ?,  ?,  ?,   ?     )  
                     `;
 
                     // 🎯 바인딩 배열에서도 더 이상 필요 없는 currentTimestamp 변수를 쏙 빼줍니다!
-                    await conn.query(sql_create_predictdata, [ 
+                    await conn.query(sql_create_predictdata, [
                         result.insertId,
                         predictHeight, 
                         predictWeight, 
@@ -181,7 +182,7 @@ router.post("/create", async (req, res) =>{
                         predictBs, 
                         predictTg, 
                         predictHdl, 
-                        predictwaist
+                        predictWaist
                     ]);
                 }
         // 리액트 전송
@@ -201,6 +202,7 @@ router.post("/create", async (req, res) =>{
     }
 })
 
+
 // 건데 페이지를 위한 조회 2R (완료)
 router.post("/list", async (req, res) =>{
     try{
@@ -212,14 +214,38 @@ router.post("/list", async (req, res) =>{
         // sql 생성 : 2테이블, 모든 셀렉, 기준은 유저인덱스
         // SELECT * FROM tbl_physical WHERE user_idx = 1;
                                             //  실제론 1을 ?로 
-        const mockupUseridx = "1" // 임시로 유저 1번만 확인
-        const readListSQL = ` SELECT * FROM tbl_physical WHERE user_idx = ? ORDER BY physical_idx DESC `;
-        const [ readListResult] = await conn.query(readListSQL, [  mockupUseridx  ])
+
+
+        const mockupUseridx = req.headers['x-user-id'];
+        if (!userIdx) return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
+
+        const readListSQL = `
+            SELECT
+                p.physical_idx AS id,
+                p.checkup_date AS date,
+                p.height, p.weight, p.waist, p.hdl, p.sbp, p.dbp, p.bs, p.tg,
+                p.smoke, p.drink,
+                YEAR(p.checkup_date) - YEAR(u.birth_date) AS age,
+                u.gender
+            FROM tbl_physical p
+            JOIN tbl_user u ON p.user_idx = u.user_idx
+            WHERE p.user_idx = ?
+            ORDER BY p.physical_idx DESC
+        `;
+        const [readListResult] = await conn.query(readListSQL, [mockupUseridx]);
+
+        const formattedList = readListResult.map(row => ({
+            ...row,
+            isSmoke: row.smoke === 1,
+            isDrink: row.drink === 1,
+            gender: row.gender === 'M' ? '남' : '여',
+        }));
+
 
         // 디비 질의 결과 DBResult를 JSON 화
         // res에 JSON을 담아서 전송
         // [4] 디비 질의 결과 DBResult를 JSON 화하여 res에 담아서 전송
-            return res.status(200).json(readListResult);
+        return res.status(200).json(formattedList);
         }
         catch (err) {
                 // 예외 상황 방어 코드 추가
