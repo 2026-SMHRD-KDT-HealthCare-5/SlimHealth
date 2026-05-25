@@ -52,6 +52,11 @@ router.post("/create", async (req, res) =>{
         //        ㄴ 예측결과 3테이블에 저장
         //            ㄴ 저장후 리액트에 전송(응답)
     try{
+
+
+        const mockupUserIdx = "1"
+        // 세션대신 넣은 하드코딩 유저번호
+
         // 리액트에서 받은 데이터 분석
                 // 2테이블에 인서트할 인수정의
                 // 2테이블에 인서트
@@ -69,71 +74,126 @@ router.post("/create", async (req, res) =>{
                 cholesterol: inputHdl, // 프론트의 cholesterol 수치를 기존 inputHdl 변수에 매핑
                 waistLine: inputWaist,
                 isSmoke: inputSmoke,
-                isDrink: inputDrink, } = req.body;
+                isDrink: inputDrink, 
+                checkupDate : inputCheckup
+            } = req.body;
+
         const inputBMI = inputWeight / ((inputHeight / 100) * (inputHeight / 100));
 
-        const sqlCreatePhysical = ` INSERT INTO tbl_physical ( user_idx, height, weight, bmi, sbp, dbp,  bs, tg, hdl, waist, smoke, drink  ) 
-                        VALUES ( ?, ?, ?, ?, ?, ?,   ?, ?, ?, ?, ?, ?  )`
+        const sqlCreatePhysical = ` 
+            INSERT INTO tbl_physical ( user_idx, height, weight, sbp, dbp, bs, tg, hdl, waist, smoke, drink, checkup_date ) 
+            VALUES                   ( ?,        ?,      ?,      ?,   ?,   ?,  ?,  ?,   ?,     ?,     ?,     ?            )
+        `;
 
-        const sessionUserIdx = "1"  // 유저인덱스 하드코딩 -> 세션개발전까지. 
-        const [result] = await conn.query(sqlCreatePhysical, [  
-            sessionUserIdx,
-            inputHeight, 
-            inputWeight, 
-            inputBMI, 
-            inputSbp,
-            inputDbp, 
-            inputBs, 
-            inputTg, 
-            inputHdl, 
-            inputWaist,
-            inputSmoke, 
-            inputDrink   ] ) // 2tb 인서트
+        const [result] = await conn.query(sqlCreatePhysical, [ 
+            mockupUserIdx, inputHeight, inputWeight, inputSbp, inputDbp, 
+            inputBs, inputTg, inputHdl, inputWaist, inputSmoke, inputDrink,
+            inputCheckup   ] ) // 2tb 인서트
 
 
 
-        // 파이선 비동기
-        const pyRes = await axios.post(pythonFastAPI.predictAllUrl, req.body) 
+        // 파이선 비동기ddd
+
+            // 파이선을 위해 나이계산 : 검진년월일 - 생년 = 나이age
+            // Todo : 임시유저 생년 = tempbirth
+        const tempbirth = 1980
+        const age = parseInt(String(inputCheckup).substring(0, 4)) - tempbirth;
+
+        // 🎯 [교정] 유저님이 주신 새로운 연령대 코드 규칙 완벽 적용
+        let ageCode = 10; // 범위 밖을 대비한 기본 디폴트값
+
+        if (age >= 25 && age <= 34) {
+            ageCode = 7;   // 25~29세, 30~34세 둘 다 7
+        } else if (age >= 35 && age <= 39) {
+            ageCode = 8;
+        } else if (age >= 40 && age <= 44) {
+            ageCode = 9;
+        } else if (age >= 45 && age <= 49) {
+            ageCode = 10;  // 현재 46세인 유저분은 여기에 걸려 정상적으로 10이 됩니다!
+        } else if (age >= 50 && age <= 54) {
+            ageCode = 11;
+        } else if (age >= 55 && age <= 59) {
+            ageCode = 12;
+        } else if (age > 59) {
+            ageCode = 13;  // 60세 이상 예외 방어막 (필요시 조절)
+        } else {
+            ageCode = 6;   // 24세 이하 예외 방어막 (필요시 조절)
+        }
+
+        const tempGender = 1; // 1: 남성 / 2: 여성
+
+        // 프론트의 변수를 파이선용으로 파싱
+        const pythonPayload = { 
+            height: Number(inputHeight),
+            weight: Number(inputWeight),
+            sbp:    Number(inputSbp),
+            dbp:    Number(inputDbp),
+            bs:     Number(inputBs),
+            tg:     Number(inputTg),
+            hdl:    Number(inputHdl),     
+            waist:  Number(inputWaist),   
+            smoke:  Number(inputSmoke),   
+            drink:  Number(inputDrink),
+            age:    Number(age),
+            gender: Number(tempGender),
+            age_code: Number(ageCode) // 🎯 새로 정렬된 정확한 연령대 코드가 파이썬으로 날아갑니다.
+        };
+
+        const pyRes = await axios.post(pythonFastAPI.predictAllUrl, pythonPayload) 
         // 파이선에 받은의료정보(req.body)를 ~주소로 보냅니다.
         const analysisData = pyRes.data // 받은값을 변수에 저장
-      
+        console.log("🎁 파이썬이 돌려준 예측 데이터 구조:", JSON.stringify(analysisData, null, 2));
 
 
         // 3tb 비동기, 인서트
             // 루프문으로 kg당 하나씩 DB입력 
-        for (const kgKey in analysisData.predictions) {
-            const targetData = analysisData.predictions[kgKey]; 
+            // ==========================================
+                // 🎯 3tb 비동기 인서트 루프 (DBMS 자동 시간 적용 버전 🚀)
+                // ==========================================
+                for (const kgKey in analysisData.predictions) {
+                    const targetData = analysisData.predictions[kgKey]; 
 
-            const predictHeight = analysisData.user.height;
-            const predictWeight = targetData.target_weight;
-            const predictBMI    = analysisData.meta.current_bmi;
-            const predictSmoke  = analysisData.user.smoke;
-            const predictDrink  = analysisData.user.drink;
+                    const lossKg = parseInt(kgKey); 
+                    const predictHeight = Number(inputHeight);
+                    const predictWeight = Number(inputWeight) - lossKg;
 
-            const predictwaist = targetData.waist;
-            const predictSbp   = targetData.sbp;
-            const predictDbp   = targetData.dbp;
-            const predictBs    = targetData.bs;
-            const predictTg    = targetData.tg;
-            const predictHdl   = targetData.hdl;
+                    const predictwaist = targetData.waist.predicted;
+                    const predictSbp   = targetData.sbp.predicted;
+                    const predictDbp   = targetData.dbp.predicted;
+                    const predictBs    = targetData.bs.predicted;
+                    const predictTg    = targetData.tg.predicted;
+                    const predictHdl   = targetData.hdl.predicted;
 
+                    // 🎯 [교정] SQL 구문에서 analyzed_at 컬럼과 맨 마지막 물음표(?)를 제거합니다!
+                    const sql_create_predictdata = `
+                        INSERT INTO tbl_analysis ( physical_idx, height, weight, weight_loss, sbp, dbp, bs, tg, hdl, waist ) 
+                        VALUES                   ( ?,            ?,      ?,      ?,           ?,   ?,   ?,  ?,  ?,   ?     )  
+                    `;
 
-            const sql_create_predictdata = `
-                INSERT INTO tbl_analysis ( physical_idx, height, weight, bmi, sbp, dbp, bs, tg, hdl, waist, smoke, drink  ) 
-                    VALUES ( ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?  )  `;
-
-            await conn.query(sql_create_predictdata, [ result.insertId,
-                predictHeight, predictWeight, predictBMI, predictSbp, predictDbp,
-                predictBs, predictTg, predictHdl, predictwaist, predictSmoke, predictDrink
-            ]);
-        }
+                    // 🎯 바인딩 배열에서도 더 이상 필요 없는 currentTimestamp 변수를 쏙 빼줍니다!
+                    await conn.query(sql_create_predictdata, [ 
+                        result.insertId,
+                        predictHeight, 
+                        predictWeight, 
+                        lossKg,
+                        predictSbp, 
+                        predictDbp,
+                        predictBs, 
+                        predictTg, 
+                        predictHdl, 
+                        predictwaist
+                    ]);
+                }
         // 리액트 전송
         return res.status(201).json(analysisData);
     }
     catch(err) {
         // 대충 에러메시지
         console.error("🚨 분석 데이터 생성 중 백엔드 에러 발생:", err);
-        
+
+        if (err.isAxiosError && err.response) {
+        console.log("❌ 파이선 오류코드:", JSON.stringify(err.response.data, null, 2));
+    }
         return res.status(500).json({ 
             success: false, 
             message: "백엔드에서 데이터를 처리하는 중 오류가 발생했습니다." 
@@ -171,7 +231,6 @@ router.post("/list", async (req, res) =>{
         }
 })
 
-
 // 예측 페이지를 위한 조회 3R ( 완료 )
 router.get("/predict/:physical_idx", async (req, res) =>{
     // 우리 예측 페이지... 를 위한 예측데이터 보내기
@@ -198,7 +257,7 @@ router.get("/predict/:physical_idx", async (req, res) =>{
     }
 })
 
-// 건데 수정 -> 예데 삭제 -> 예데 재예측 ( 완료 )
+// 건데 수정과 같이 예데 삭제 후 재예측 ( 완료 )
 router.get("/update/:physical_idx", async (req, res) =>{
 
     try{
@@ -346,7 +405,7 @@ router.get("/delete/:physical_idx", async (req, res) =>{
 
 
 
-
+module.exports = router;
 /*
 건강기본주소(미사용) 
 ../api/health
