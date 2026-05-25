@@ -16,14 +16,26 @@ let table_name = "tbl_user";
 router.post("/create", async ( req, res )=>{
     try{
         // 프론트엔드가 보낸 요청 바디 데이터
-        const { account, password, name, email, phoneNumber } = req.body;
+        // 각각           ID PW 이름              이멜 폰번
+        // DB엔 회원번호, ID PW 이름 성별 생년 이멜 폰번 가입일
+        // 회번 가입일은 알아서됨
+
+        // 단, db,py는 생년, 성별코드만 필요하므로 수정필요. 
+            const genderCode = gender === "Male" ? "M" : gender === "Female" ? "F" : "M";
+            // 삼항연산 : male이면m으로, female이면f로, 그외 M으로.
+                // 이결과를 젠더코드에 저장.
+                // 젠더코드는 DB, py가 사용.
+
+            const birthDate = birthYear ? `${birthYear}-01-01` : null;
+            // 생년을 생년월일로 저장해서 DB에 사용.
+
+
+        const { account, password, name, gender, birthYear, email, phoneNumber } = req.body;
         
-        // 💡 ERD 구조 순서: user_idx(NULL), id, password_hash, name, email, phone, role, joined_at
-        const sql_create_userdata = `INSERT INTO ${table_name} VALUES ( NULL, ?, ?, ?, ?, ?, '유저', NOW(3) )`; 
-        
-        // 데이터베이스의password_hash 컬럼 자리에 password 변수를 매핑합니다.
-        const [createResult] = await conn.query(sql_create_userdata , [ account, password, name, email, phoneNumber ] );
-        
+        const sql_create_userdata = `INSERT INTO ${table_name} VALUES ( null, ?,?,?,?,?,?,?, null )`; 
+        const [createResult] = await conn.query(sql_create_userdata , [ account, password, name, gender, birthYear, email, phoneNumber ] );
+        // 빈칸 7개, 변수 7개
+
         console.log(createResult);
         console.log( " 성공적으로 새 유저 저장. 회원가입을 환영합니다. " );
 
@@ -50,7 +62,7 @@ router.post("/read", async ( req, res )=>{
     try{
         const { account, password } = req.body;
         
-        // 💡 [교정] ERD 상의 실제 컬럼명인 id와 password_hash로 조건절 수정
+
         const sql_read_userdata = `SELECT * FROM ${table_name} WHERE id = ? AND password_hash = ?`; 
 
         const [readResult] = await conn.query(sql_read_userdata , [ account, password ] );
@@ -162,4 +174,17 @@ router.post("/delete", async ( req, res )=>{
     }
 });
 
-module.exports = router;
+// =======================================================
+// 5. 아이디 중복 확인
+// =======================================================
+router.post("/check", async (req, res) => {
+    try {
+        const { account } = req.body;
+        const sql = `SELECT user_idx FROM ${table_name} WHERE id = ?`;
+        const [result] = await conn.query(sql, [account]);
+        return res.status(200).json({ isDuplicate: result.length > 0 });
+    } catch (err) {
+        console.error("🚨 중복 확인 중 DB 에러:", err);
+        return res.status(500).json({ success: false, message: "서버 오류가 발생했습니다." });
+    }
+});
