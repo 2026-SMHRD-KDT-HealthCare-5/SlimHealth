@@ -1,22 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { TopNavigation } from "../components/TopNavigation";
 import { Text } from "../components/Text/Text";
 import { SummaryBox } from "../components/SummaryBox/SummaryBox";
 import { ResultBox } from "../components/ResultBox/ResultBox";
 import { ImprovementBox } from "../components/ImprovementBox/ImprovementBox";
-import { KpiBarChart } from "../components/KpiBarChart/KpiBarChart";
-import { Slider, sliderWidth } from "../components/Slider";
+import { Slider } from "../components/Slider";
 import {
   getAnalysisContentApi,
   getImprovementListApi,
   getKPIPredictionApi,
   getSummaryResultApi,
 } from "../api/healthDataApi";
-import character1 from "../assets/character1.png";
-import character2 from "../assets/character2.png";
-import character3 from "../assets/character3.png";
-import character4 from "../assets/character4.png";
-import character5 from "../assets/character5.png";
 import { EBarChart } from "../components/EBarChart/EBarChart";
 import {
   getCurrentCharacterStage,
@@ -32,16 +25,19 @@ const Prediction = () => {
   const id = searchParams.get("id");
 
   //슬라이더 부분
-  const [sliderValue, setSliderValue] = useState(0);
-  const [sliderMaxValue, setSliderMaxValue] = useState(0);
-  const [sliderMinValue, setSliderMinValue] = useState(0);
-  const [bmi, setBmi] = useState(0);
-  const [maxLossKg, setMaxLossKg] = useState(0);
   const [predictions, setPredictions] = useState({});
-  const [weight, setWeight] = useState(0);
+
   const [currentSliderImage, setCurrentSliderImage] = useState(
     sliderImageList[0],
   );
+
+  const [sliderValue, setSliderValue] = useState(0);
+  const [sliderMaxValue, setSliderMaxValue] = useState(0);
+  const [sliderMinValue, setSliderMinValue] = useState(0);
+
+  const [bmi, setBmi] = useState(0);
+  const [maxLossKg, setMaxLossKg] = useState(0);
+  const [weight, setWeight] = useState(0);
 
   //요약 부분
   const [summary, setSummary] = useState(null);
@@ -50,12 +46,12 @@ const Prediction = () => {
   const [kpiResultList, setKpiResultList] = useState([]);
 
   //개선사항 부분
-  const [improvementList, setImprovementList] = useState({});
+  const [improvementList, setImprovementList] = useState(null);
 
   //긴 분석내용 부분
   const [analysisContent, setAnalysisContent] = useState("");
 
-  const handleChangeSlider = (value, isSetResult) => {
+  const handleChangeSlider = (value) => {
     setSliderValue(value);
 
     const tempWeight = sliderValueToWeight(
@@ -77,17 +73,15 @@ const Prediction = () => {
     );
 
     //예측 부분 조정
-    if (isSetResult) {
-      setKpiResultList((prev) =>
-        prev.map((item) => ({
-          ...item,
-          predictionValue:
-            currentLossKg == 0
-              ? item.current_value
-              : predictions[`${currentLossKg}kg`][item.key],
-        })),
-      );
-    }
+    setKpiResultList((prev) =>
+      prev.map((item) => ({
+        ...item,
+        predictionValue:
+          currentLossKg == 0
+            ? item.current_value
+            : predictions[`${currentLossKg}kg`][item.key],
+      })),
+    );
   };
 
   //api 연결 부분 필요
@@ -100,12 +94,12 @@ const Prediction = () => {
         const tempPredictions = data.predictions;
         setPredictions(tempPredictions);
 
-        const tempSliderMaxValue = data.weight;
+        const tempSliderMaxValue = parseInt(data.weight);
         setSliderMaxValue(tempSliderMaxValue);
-        const tempSliderMinValue = data.weight - data.max_loss_kg;
+        const tempSliderMinValue = parseInt(data.weight) - data.max_loss_kg;
         setSliderMinValue(tempSliderMinValue);
 
-        const tempWeight = data.weight;
+        const tempWeight = parseInt(data.weight);
         setWeight(tempWeight);
         const tempBmi = data.current_bmi;
         setBmi(tempBmi);
@@ -197,7 +191,7 @@ const Prediction = () => {
               />
               <Slider
                 onChange={(value) => {
-                  handleChangeSlider(value, true);
+                  handleChangeSlider(value);
                 }}
                 value={sliderValue}
                 maxValue={sliderMaxValue}

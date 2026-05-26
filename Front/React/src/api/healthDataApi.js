@@ -103,7 +103,7 @@ export const getKPIPredictionApi = (id) => {
             "허리둘레가 긴 편입니다. 혹시 살이 찐 건 아닌지 의심해보시고, 꾸준한 운동을 하시는 걸 추천드립니다",
         },
       ],
-      weight: 82,
+      weight: 81.9,
       max_loss_kg: 15,
       current_bmi: 27.6,
       predictions: {
