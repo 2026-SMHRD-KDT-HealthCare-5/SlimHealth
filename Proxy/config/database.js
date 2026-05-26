@@ -19,7 +19,7 @@ const db_info = {
 
 // 03. DB 연결할수있는 객체 생성
 
-module.exports = mysql.createConnection( db_info );
+module.exports = mysql.createConnection( db_info ).promise();
 
 
 // 김재부
