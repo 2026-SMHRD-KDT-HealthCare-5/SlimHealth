@@ -14,12 +14,13 @@ const db_info = {
     user : "cd_25K_HI5_p2_4",
     password : "smhrd4",
     port : "3312",
-    database : "cd_25K_HI5_p2_4"
+    database : "cd_25K_HI5_p2_4",
+    dateStrings: true,
 }
 
 // 03. DB 연결할수있는 객체 생성
 
-module.exports = mysql.createConnection( db_info );
+module.exports = mysql.createConnection( db_info ).promise();
 
 
 // 김재부

@@ -46,6 +46,7 @@ const multer = require("multer");
 const path = require("path");
 
 const pythonFastAPI = require("../config/pythonFastAPI");
+const healthAdviceModulePromise = import("../Api/healthAdvice.mjs");
 const mockupUserIdx = "1"
 // 세션대신 넣은 하드코딩 유저번호
 
@@ -491,73 +492,15 @@ router.get("/advice/:physical_idx", async (req, res) => {
                 hdl:   row.hdl,
             };
         }
+const { getHealthAdvice } = await healthAdviceModulePromise;
+const ocrResult      = { age: p.age, weight: p.weight };
+const userInput      = { gender: p.gender === "M" ? 1 : 2, smoke: p.smoke, drink: p.drink };
+const currentMetrics = { waist: p.waist, sbp: p.sbp, dbp: p.dbp, bs: p.bs, tg: p.tg, hdl: p.hdl };
 
-        const genderNum      = p.gender === "M" ? 1 : 2;
-        const genderLabel    = genderNum === 1 ? "남성" : "여성";
-        const waistThreshold = genderNum === 1 ? 90 : 85;
-        const hdlThreshold   = genderNum === 1 ? 40 : 50;
+const advice = await getHealthAdvice(ocrResult, userInput, currentMetrics, allPredictions);
+const score  = Math.max(10, 100 - advice.syndrome_count * 20);
 
-        let syndromeCount = 0;
-        if (p.waist >= waistThreshold)              syndromeCount++;
-        if (p.tg    >= 150)                         syndromeCount++;
-        if (p.hdl   <  hdlThreshold)                syndromeCount++;
-        if (p.sbp   >= 130 || p.dbp >= 85)          syndromeCount++;
-        if (p.bs    >= 100)                         syndromeCount++;
 
-        const predictionsText = Object.entries(allPredictions)
-            .map(([kg, v]) =>
-                `  ${kg}: 허리${v.waist}cm / 수축압${v.sbp}mmHg / 이완압${v.dbp}mmHg / 혈당${v.bs}mg/dL / 중성지방${v.tg}mg/dL / HDL${v.hdl}mg/dL`
-            ).join("\n");
-
-        const prompt = `
-당신은 건강 전문 AI 어시스턴트입니다.
-아래 사용자의 건강검진 수치를 정밀 분석하고 실용적이고 구체적인 맞춤 건강 조언을 제공해주세요.
-전문 의학 용어보다 일반인이 이해하기 쉬운 표현을 사용하세요.
-
-[사용자 정보]
-성별: ${genderLabel} / 나이: ${p.age}세
-현재 체중: ${p.weight}kg
-흡연: ${p.smoke === 1 ? "현재 흡연" : "비흡연/금연"}
-음주: ${p.drink === 1 ? "음주" : "비음주"}
-
-[현재 건강 수치]
-허리둘레: ${p.waist}cm (${genderLabel} 위험 기준: ${waistThreshold}cm 이상)
-수축기혈압: ${p.sbp}mmHg (위험 기준: 130mmHg 이상)
-이완기혈압: ${p.dbp}mmHg (위험 기준: 85mmHg 이상)
-공복혈당: ${p.bs}mg/dL (위험 기준: 100mg/dL 이상)
-중성지방: ${p.tg}mg/dL (위험 기준: 150mg/dL 이상)
-HDL 콜레스테롤: ${p.hdl}mg/dL (${genderLabel} 위험 기준: ${hdlThreshold}mg/dL 미만)
-
-[감량량별 예측 수치]
-${predictionsText}
-
-[현재 대사증후군 위험 항목 수: ${syndromeCount}/5]
-
-다음 JSON 형식으로만 응답해주세요. 다른 텍스트 없이 순수 JSON만 반환하세요:
-{
-  "overall_summary": "현재 건강 상태 한 줄 요약 (30자 이내)",
-  "risk_level": "정상 또는 주의 또는 위험 중 하나만",
-  "syndrome_count": ${syndromeCount},
-  "recommended_loss_kg": 감량량별 예측 수치를 분석해서 대사증후군 기준 항목들이 정상 범위로 들어오는 최소 감량량 숫자만,
-  "lifestyle_tips": {
-    "diet":     "식단 조언 (2문장 이내)",
-    "exercise": "운동 조언 (2문장 이내)",
-    "habit":    "생활습관 조언 (2문장 이내)"
-  },
-  "total_advice": "구체적 행동조언 + 식단 + 운동 + 생활습관 통합 종합 조언 (1000자 이내, 흡연/음주 여부 반드시 반영, 줄바꿈 없이 하나의 문단으로). 맨 마지막 문장은 반드시 '본 내용은 AI 기반 건강 정보 제공으로 의학적 진단을 대체하지 않습니다. 정확한 진단과 치료는 반드시 전문의와 상담하세요.' 로 끝낼것"
-}`;
-
-        const geminiRes = await retryGemini(
-            (ai) => ai.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: [prompt],
-                config: { responseMimeType: "application/json", temperature: 0.3 },
-            }),
-            "건강 조언"
-        );
-
-        const advice = JSON.parse(geminiRes.text);
-        const score  = Math.max(10, 100 - advice.syndrome_count * 20);
 
         // advices 배열을 key 기반 messages 맵으로 변환
         const indicatorToKey = {
