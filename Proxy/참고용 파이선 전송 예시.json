@@ -1,0 +1,14 @@
+{
+  "gender": 1,
+  "age_code": 9,
+  "height": 172.0,
+  "weight": 82.5,
+  "waist": 89.0,
+  "sbp": 132,
+  "dbp": 86,
+  "bs": 105,
+  "tg": 165,
+  "hdl": 38,
+  "smoke": 1,
+  "drink": 1
+}

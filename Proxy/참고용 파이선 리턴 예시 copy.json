@@ -1,0 +1,60 @@
+{
+    "predictions": {
+    "1kg": {
+      "waist": {
+        "current": 92,
+        "predicted": 90.1,
+        "delta": -1.9,
+        "mae": 1.7,
+        "unit": "cm"
+      },
+      "sbp": {
+        "current": 130,
+        "predicted": 128.8,
+        "delta": -1.2,
+        "mae": 2,
+        "unit": "mmHg"
+      },
+      "dbp": {
+        "current": 85,
+        "predicted": 84.2,
+        "delta": -0.8,
+        "mae": 1.5,
+        "unit": "mmHg"
+      },
+      "bs": {
+        "current": 105,
+        "predicted": 104.1,
+        "delta": -0.9,
+        "mae": 1.6,
+        "unit": "mg/dL"
+      },
+      "tg": {
+        "current": 160,
+        "predicted": 158.4,
+        "delta": -1.6,
+        "mae": 5.7,
+        "unit": "mg/dL"
+      },
+      "hdl": {
+        "current": 40,
+        "predicted": 40.2,
+        "delta": 0.2,
+        "mae": 0.4,
+        "unit": "mg/dL"
+      }
+    }
+  },
+  "max_loss_kg": 15,
+  "current_bmi": 27.8,
+  "normal_weight": 76.3,
+  "to_normal": 8.7,
+
+
+  "주석01" : "response.data.predictions + 반복문 으로 접근할 것",
+  "주석02" : "response.data.user 등으로 접근할 것",
+  "구동코드" : "nodemon main.js, py main_test.py   "
+}
+
+
+
