@@ -21,8 +21,8 @@ const Login = () => {
   const handleLogin = async () => {
     try {
       const data = await loginApi({ account, password });
-      if (data.result) {
-        processLogin(data.userInfo);
+      if (data.success) {
+        processLogin(data.user);
         nav("/");
       } else {
         openDialog(
@@ -34,6 +34,13 @@ const Login = () => {
       }
     } catch (e) {
       console.log(e);
+
+      openDialog(
+        "로그인 오류", //title
+        "아이디 또는 비밀번호를 확인해주세요", //content
+        false, //isCancelButton
+        closeDialog, //onConfirmClick
+      );
     }
   };
 

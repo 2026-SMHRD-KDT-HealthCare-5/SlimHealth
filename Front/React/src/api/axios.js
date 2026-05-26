@@ -3,13 +3,17 @@ import { userInfoKey } from "../utils/utils";
 
 const refreshPath = "auth/refresh";
 
+export const loginClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
 client.interceptors.request.use(
   (config) => {
-    const accessToken = localStorage.getItem(userInfoKey).accessToken;
+    const accessToken = localStorage.getItem(userInfoKey)?.accessToken || "";
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
