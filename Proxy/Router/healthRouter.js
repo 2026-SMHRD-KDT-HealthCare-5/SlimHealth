@@ -46,10 +46,22 @@ const multer = require("multer");
 const path = require("path");
 
 const pythonFastAPI = require("../config/pythonFastAPI");
-const healthAdviceModulePromise = import("../Api/healthAdvice.mjs");
-const mockupUserIdx = "1"
-// 세션대신 넣은 하드코딩 유저번호
 
+
+const healthAdviceModulePromise = import("../Api/healthAdvice.mjs");
+
+
+
+// 로그인 유저 체크
+function getLoginUserIdx(req) {
+    const userIdx = req.headers["x-user-id"];
+
+    if (!userIdx) {
+        return null;
+    }
+
+    return Number(userIdx);
+}
 
 
 
@@ -60,8 +72,14 @@ router.post("/create", async (req, res) =>{
         //        ㄴ 예측결과 3테이블에 저장
         //            ㄴ 저장후 리액트에 전송(응답)
     try{
-
-
+            //로그인 구현
+            const userIdx = getLoginUserIdx(req);
+            if (!userIdx) {
+                return res.status(401).json({
+                    success: false,
+                    message: "로그인이 필요합니다."
+                });
+            }
 
 
         // 리액트에서 받은 데이터 분석
@@ -93,18 +111,42 @@ router.post("/create", async (req, res) =>{
         `;
 
         const [result] = await conn.query(sqlCreatePhysical, [ 
-            mockupUserIdx, inputHeight, inputWeight, inputSbp, inputDbp, 
-            inputBs, inputTg, inputHdl, inputWaist, inputSmoke, inputDrink,
-            inputCheckup   ] ) // 2tb 인서트
+                userIdx, inputHeight, inputWeight, inputSbp, inputDbp, 
+                inputBs, inputTg, inputHdl, inputWaist, inputSmoke, inputDrink,
+                inputCheckup
+        ]); // 2tb 인서트
 
 
 
         // 파이선 비동기ddd
 
             // 파이선을 위해 나이계산 : 검진년월일 - 생년 = 나이age
-            // Todo : 임시유저 생년 = tempbirth
-        const tempbirth = 1980
-        const age = parseInt(String(inputCheckup).substring(0, 4)) - tempbirth;
+            const sqlReadUser = `
+                SELECT birth_date, gender
+                FROM tbl_user
+                WHERE user_idx = ?
+            `;
+
+            const [userRows] = await conn.query(sqlReadUser, [userIdx]);
+
+            if (userRows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "사용자 정보를 찾을 수 없습니다."
+                });
+            }
+
+            const userBirthDate = userRows[0].birth_date;
+            const userGender = userRows[0].gender;
+
+            const tempbirth = userBirthDate instanceof Date
+                ? userBirthDate.getFullYear()
+                : Number(String(userBirthDate).substring(0, 4));
+
+            const tempGender = userGender === "M" ? 1 : 2;
+
+            const checkupYear = parseInt(String(inputCheckup).substring(0, 4));
+            const age = checkupYear - tempbirth;
 
 
         let ageCode = 10; // 범위 밖을 대비한 기본 디폴트값
@@ -128,7 +170,6 @@ router.post("/create", async (req, res) =>{
         const calBMI = inputWeight / ((inputHeight / 100) * (inputHeight / 100));;
 
 
-        const tempGender = 1; // 1: 남성 / 2: 여성
 
         // 프론트의 변수를 파이선용으로 파싱
         const pyPayload = { 
@@ -220,9 +261,14 @@ router.post("/list", async (req, res) =>{
                                             //  실제론 1을 ?로 
 
 
-        const mockupUseridx = req.headers['x-user-id'];
-        if (!userIdx) return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
+        // const mockupUseridx = req.headers['x-user-id'];
+        // if (!userIdx) return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
+        const userIdx = getLoginUserIdx(req);
 
+        if (!userIdx) {
+    return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
+}
+        
         const readListSQL = `
             SELECT
                 p.physical_idx AS id,
@@ -236,7 +282,7 @@ router.post("/list", async (req, res) =>{
             WHERE p.user_idx = ?
             ORDER BY p.physical_idx DESC
         `;
-        const [readListResult] = await conn.query(readListSQL, [mockupUseridx]);
+        const [readListResult] = await conn.query(readListSQL, [userIdx]);
 
         const formattedList = readListResult.map(row => ({
             ...row,
@@ -262,196 +308,360 @@ router.post("/list", async (req, res) =>{
 })
 
 // 예측 페이지를 위한 조회 3R ( 완료 )
-router.get("/predict/:physical_idx", async (req, res) =>{
-    // 우리 예측 페이지... 를 위한 예측데이터 보내기
-    try{
-        const physicalIdx = req.params.physical_idx;
-        // 요청에서 파라미터 추출
+router.get("/predict/:physical_idx", async (req, res) => {
+    try {
+        const userIdx = getLoginUserIdx(req);
 
-        // phy_idx를 2테이블에 질의하여 현재데이터를 가져오기
-        const readPhysicalSQL = 'SELECT * FROM  tbl_physical  WHERE physical_idx = ?';
-        const [ physicalResult ] = await conn.query( readPhysicalSQL ,   [ physicalIdx ] );
-        
-        // 2테이블 예외처리
-        if (physicalResult.length === 0) {
-        return res.status(404).json({
-            success: false,
-            message: "해당 검진 데이터를 찾을 수 없습니다."
-        });
+        if (!userIdx) {
+            return res.status(401).json({
+                success: false,
+                message: "로그인이 필요합니다."
+            });
         }
 
-        // phy_idx를 3테이블에 질의하여 모든 예측데이터를 가져오기
-        const readPredictSQL = 'SELECT * FROM  tbl_analysis  WHERE physical_idx = ? ORDER BY weight_loss DESC';
-        const [ predictResult ] = await conn.query( readPredictSQL ,   [ physicalIdx ] );
+        const physicalIdx = req.params.physical_idx;
 
+        const readPhysicalSQL = `
+            SELECT *
+            FROM tbl_physical
+            WHERE physical_idx = ?
+              AND user_idx = ?
+        `;
 
+        const [physicalResult] = await conn.query(readPhysicalSQL, [
+            physicalIdx,
+            userIdx
+        ]);
 
-        const phpdResult = { 
+        if (physicalResult.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "해당 검진 데이터를 찾을 수 없습니다."
+            });
+        }
+
+        const readPredictSQL = `
+            SELECT *
+            FROM tbl_analysis
+            WHERE physical_idx = ?
+            ORDER BY weight_loss DESC
+        `;
+
+        const [predictResult] = await conn.query(readPredictSQL, [physicalIdx]);
+
+        return res.status(200).json({
             success: true,
             physical: physicalResult[0],
             predictions: predictResult
-        }; // conn.query가 객체로 반환
+        });
 
-
-
-
-         // 비동기로 받은 질의결과를 JSON화 하여 송신
-        return res.status(200).json(phpdResult);
-    }
-    catch (err) { 
+    } catch (err) {
         console.error("🚨 예측 데이터 조회 중 백엔드 에러 발생:", err);
-        return res.status(500).json({ 
-            success: false, 
-            message: "예측 리포트 데이터를 불러오는 중 오류가 발생했습니다." 
+
+        return res.status(500).json({
+            success: false,
+            message: "예측 리포트 데이터를 불러오는 중 오류가 발생했습니다."
         });
     }
-})
+});
 
-// 건데 수정과 같이 예데 삭제 후 재예측 
-router.get("/update/:physical_idx", async (req, res) =>{
+// 건데 수정과 같이 예데 삭제 후 재예측
+router.post("/update/:physical_idx", async (req, res) => {
+    try {
+        const userIdx = getLoginUserIdx(req);
 
-    try{
+        if (!userIdx) {
+            return res.status(401).json({
+                success: false,
+                message: "로그인이 필요합니다."
+            });
+        }
+
         const physicalIdx = req.params.physical_idx;
 
-        // 1. 유저가 건강데이터를 수정함(수정하고 수정요청REQ을 보냄)
-        // 2. 내가 받아서 변수 쪼개고 쿼리문에 넣음
-        const { userHeight: inputHeight,
-                userWeight: inputWeight,
-                systolicBp: inputSbp,
-                diastolicBp: inputDbp,
-                bloodGlucose: inputBs,
-                triglyceride: inputTg,
-                cholesterol: inputHdl, 
-                waistLine: inputWaist,
-                isSmoke: inputSmoke,
-                isDrink: inputDrink } = req.body;
-        
-        // 💡 누락되었던 수정 시 BMI 재계산 로직 추가
+        const {
+            userHeight: inputHeight,
+            userWeight: inputWeight,
+            systolicBp: inputSbp,
+            diastolicBp: inputDbp,
+            bloodGlucose: inputBs,
+            triglyceride: inputTg,
+            cholesterol: inputHdl,
+            waistLine: inputWaist,
+            isSmoke: inputSmoke,
+            isDrink: inputDrink,
+            checkupDate: inputCheckup
+        } = req.body;
+
+        if (
+            inputHeight === undefined ||
+            inputWeight === undefined ||
+            inputSbp === undefined ||
+            inputDbp === undefined ||
+            inputBs === undefined ||
+            inputTg === undefined ||
+            inputHdl === undefined ||
+            inputWaist === undefined ||
+            inputSmoke === undefined ||
+            inputDrink === undefined
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "수정할 건강 데이터를 모두 입력해주세요."
+            });
+        }
+
+        // 해당 검진 데이터가 현재 로그인 유저의 것인지 확인 + 유저 정보 가져오기
+        const readPhysicalSQL = `
+            SELECT 
+                p.physical_idx,
+                p.user_idx,
+                p.checkup_date,
+                u.birth_date,
+                u.gender
+            FROM tbl_physical p
+            JOIN tbl_user u ON p.user_idx = u.user_idx
+            WHERE p.physical_idx = ?
+              AND p.user_idx = ?
+        `;
+
+        const [physicalRows] = await conn.query(readPhysicalSQL, [
+            physicalIdx,
+            userIdx
+        ]);
+
+        if (physicalRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "수정할 건강 데이터를 찾을 수 없습니다."
+            });
+        }
+
+        const userBirthDate = physicalRows[0].birth_date;
+        const userGender = physicalRows[0].gender;
+
+        const tempbirth = userBirthDate instanceof Date
+            ? userBirthDate.getFullYear()
+            : Number(String(userBirthDate).substring(0, 4));
+
+        const tempGender = userGender === "M" ? 1 : 2;
+
+        const checkupDate = inputCheckup || physicalRows[0].checkup_date;
+
+        const checkupYear = checkupDate instanceof Date
+            ? checkupDate.getFullYear()
+            : parseInt(String(checkupDate).substring(0, 4));
+
+        const age = checkupYear - tempbirth;
+
+        let ageCode = 10;
+
+        if (age >= 25 && age <= 34) {
+            ageCode = 7;
+        } else if (age >= 35 && age <= 39) {
+            ageCode = 8;
+        } else if (age >= 40 && age <= 44) {
+            ageCode = 9;
+        } else if (age >= 45 && age <= 49) {
+            ageCode = 10;
+        } else if (age >= 50 && age <= 54) {
+            ageCode = 11;
+        } else if (age >= 55 && age <= 59) {
+            ageCode = 12;
+        } else if (age > 59) {
+            ageCode = 13;
+        } else {
+            ageCode = 6;
+        }
+
         const inputBMI = inputWeight / ((inputHeight / 100) * (inputHeight / 100));
-        
-        const updatePhysicalSQL  = `UPDATE tbl_physical SET 
-            height=?, 
-            weight=?, 
-            bmi   =?, 
-            sbp   =?, 
-            dbp   =?, 
-            bs    =?, 
-            tg    =?, 
-            hdl   =?, 
-            waist =?, 
-            smoke =?, 
-            drink =? WHERE physical_idx = ?`; // 11개
 
-        // 3. 쿼리문을 DB에 질의 응답 받음
-            const [ updateResult ]   = await conn.query( updatePhysicalSQL, [
-                inputHeight, inputWeight, inputBMI, inputSbp,
-                inputDbp, inputBs, inputTg, inputHdl, inputWaist, // ◀ 여기 inputWaist를 소문자 i로 수정
-                inputSmoke, inputDrink,  physicalIdx ]  ) ; // 행조건을 걸 파라미터(physicalIdx)
-    
-        // 4. 여기서 파생되었던 예측데이터 삭제
-            // 딜리트 쿼리문 생성 -> 실행
-        const update2DeleteSQL    =  'DELETE FROM tbl_analysis WHERE physical_idx = ? ' 
-        const [update2DeleteResult] =  await conn.query( update2DeleteSQL , [   physicalIdx   ] )
+        // 2테이블 건강 데이터 수정
+        const updatePhysicalSQL = `
+            UPDATE tbl_physical
+            SET
+                height = ?,
+                weight = ?,
+                sbp = ?,
+                dbp = ?,
+                bs = ?,
+                tg = ?,
+                hdl = ?,
+                waist = ?,
+                smoke = ?,
+                drink = ?
+            WHERE physical_idx = ?
+              AND user_idx = ?
+        `;
 
-        // 5. 파이선에 질의하여 새 데이터 생성
-            // 파이선 비동기
-        const pyRes = await axios.post(pythonFastAPI.predictAllUrl, req.body) 
-            // 파이선에 받은의료정보(req.body)를 ~주소로 보냅니다.
-        const analysisData = pyRes.data // 받은값을 변수에 저장
+        const [updateResult] = await conn.query(updatePhysicalSQL, [
+            inputHeight,
+            inputWeight,
+            inputSbp,
+            inputDbp,
+            inputBs,
+            inputTg,
+            inputHdl,
+            inputWaist,
+            inputSmoke,
+            inputDrink,
+            physicalIdx,
+            userIdx
+        ]);
 
+        if (updateResult.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "수정할 건강 데이터를 찾을 수 없습니다."
+            });
+        }
 
-        // 6. 받은 새 데이터를 3tb에 입력
+        // 기존 예측 데이터 삭제
+        const update2DeleteSQL = `
+            DELETE FROM tbl_analysis
+            WHERE physical_idx = ?
+        `;
+
+        await conn.query(update2DeleteSQL, [physicalIdx]);
+
+        // Python으로 보낼 데이터 생성
+        const pyPayload = {
+            height: Number(inputHeight),
+            weight: Number(inputWeight),
+            sbp: Number(inputSbp),
+            dbp: Number(inputDbp),
+            bs: Number(inputBs),
+            tg: Number(inputTg),
+            hdl: Number(inputHdl),
+            waist: Number(inputWaist),
+            smoke: Number(inputSmoke),
+            drink: Number(inputDrink),
+            age: Number(age),
+            gender: Number(tempGender),
+            age_code: Number(ageCode),
+            bmi: Number(inputBMI)
+        };
+
+        console.log("수정 후 파이썬으로 보낼 데이터:", pyPayload);
+
+        const pyRes = await axios.post(pythonFastAPI.predictAllUrl, pyPayload);
+        const analysisData = pyRes.data;
+
+        // 새 예측 데이터 저장
         for (const kgKey in analysisData.predictions) {
-            const targetData = analysisData.predictions[kgKey]; 
+            const targetData = analysisData.predictions[kgKey];
+            const lossKg = parseInt(kgKey);
 
-            const predictHeight = analysisData.user.height;
-            const predictWeight = targetData.target_weight;     // 현재 체중이 아닌 예측체중
-            const predictBMI    = analysisData.meta.current_bmi;
-            const predictSmoke  = analysisData.user.smoke;
-            const predictDrink  = analysisData.user.drink;
+            const predictHeight = inputHeight;
+            const predictWeight = parseFloat((inputWeight - lossKg).toFixed(1));
 
-            const predictwaist = targetData.waist;
-            const predictSbp   = targetData.sbp;
-            const predictDbp   = targetData.dbp;
-            const predictBs    = targetData.bs;
-            const predictTg    = targetData.tg;
-            const predictHdl   = targetData.hdl;
+            const predictWaist = targetData.waist.predicted;
+            const predictSbp = targetData.sbp.predicted;
+            const predictDbp = targetData.dbp.predicted;
+            const predictBs = targetData.bs.predicted;
+            const predictTg = targetData.tg.predicted;
+            const predictHdl = targetData.hdl.predicted;
 
+            const sqlCreatePredictData = `
+                INSERT INTO tbl_analysis
+                (physical_idx, height, weight, weight_loss, sbp, dbp, bs, tg, hdl, waist)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
 
-            const sql_create_predictdata = `
-                INSERT INTO tbl_analysis ( physical_idx, height, weight, bmi, sbp, dbp, bs, tg, hdl, waist, smoke, drink  ) 
-                    VALUES ( ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?  ) `;
-
-            await conn.query(sql_create_predictdata, [ physicalIdx,
-                predictHeight, 
-                predictWeight, 
-                predictBMI, 
-                predictSbp, 
+            await conn.query(sqlCreatePredictData, [
+                physicalIdx,
+                predictHeight,
+                predictWeight,
+                lossKg,
+                predictSbp,
                 predictDbp,
                 predictBs,
-                predictTg, 
-                predictHdl, 
-                predictwaist, 
-                predictSmoke, 
-                predictDrink
+                predictTg,
+                predictHdl,
+                predictWaist
             ]);
-        } 
+        }
 
-
-
-
-
-
-
-
-
-        // 7. 응답문을 JSON화 하여 유저에게 응답함
-         // 비동기로 받은 질의결과를 JSON화 하여 송신
         return res.status(200).json({
             success: true,
             message: "건강 데이터 수정 및 예측 데이터 갱신이 완료되었습니다.",
-            physical_idx: physicalIdx
+            physical_idx: physicalIdx,
+            predictions: analysisData
+        });
+
+    } catch (err) {
+        console.error("🚨 수정 라우터 에러 발생:", err);
+
+        if (err.isAxiosError && err.response) {
+            console.log("❌ 파이선 오류코드:", JSON.stringify(err.response.data, null, 2));
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "서버 내부 오류가 발생했습니다."
         });
     }
-    catch(err){ 
-        console.error("🚨 수정 라우터 에러 발생:", err);
-        return res.status(500).json({
-            success: false, 
-            message: "서버 내부 오류가 발생했습니다."
-         });
-    }
-})
+});
 
 
 // 건데 삭제 및 연관 예데 삭제 ( 완료 )
-router.get("/delete/:physical_idx", async (req, res) =>{
-    try{
+// =======================================================
+// 건데 삭제 및 연관 예데 삭제
+// CASCADE 적용 버전
+// =======================================================
+router.delete("/delete/:physical_idx", async (req, res) => {
+    try {
+        const userIdx = getLoginUserIdx(req);
+
+        if (!userIdx) {
+            return res.status(401).json({
+                success: false,
+                message: "로그인이 필요합니다."
+            });
+        }
+
         const physicalIdx = req.params.physical_idx;
 
+        if (!physicalIdx) {
+            return res.status(400).json({
+                success: false,
+                message: "삭제할 건강 기록 번호가 필요합니다."
+            });
+        }
 
-        // 1 건강데이터에 연관된 에측데이터 삭제
-            const deleteAnalysisSQL =  ` DELETE FROM tbl_analysis WHERE physical_idx = ?    `
-            const [deleteAnalysisResult] = await conn.query(  deleteAnalysisSQL , [physicalIdx])
-        // 2 건강데이터 삭제
-            const deletePhysicalSQL =  ` DELETE FROM tbl_physical WHERE physical_idx = ?    `
-            const [deletePhysicalResult] = await conn.query(  deletePhysicalSQL , [physicalIdx])
+        const deletePhysicalSQL = `
+            DELETE FROM tbl_physical
+            WHERE physical_idx = ?
+              AND user_idx = ?
+        `;
 
+        const [deletePhysicalResult] = await conn.query(deletePhysicalSQL, [
+            physicalIdx, userIdx    ]);
 
-        // 3. 🎯 [추가] 삭제 완료 후 리액트 유저에게 정상 대답 송신
+        console.log(deletePhysicalResult);
+
+        if (deletePhysicalResult.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "삭제할 건강 기록을 찾을 수 없습니다."
+            });
+        }
+
         return res.status(200).json({
             success: true,
-            message: "선택하신 건강 기록과 AI 예측 리포트가 안전하게 삭제되었습니다.",
+            message: "선택하신 건강 기록과 AI 예측 리포트가 삭제되었습니다.",
             deleted_idx: physicalIdx
         });
 
-    } catch(err){
-        console.error("🚨 수정 라우터 에러 발생:", err);
+    } catch (err) {
+        console.error("🚨 건강 기록 삭제 중 백엔드 에러 발생:", err);
+
         return res.status(500).json({
-            success: false, 
+            success: false,
             message: "서버 내부 오류가 발생했습니다."
-         });
+        });
     }
-})
+});
 
 
 
@@ -535,7 +745,7 @@ const score  = Math.max(10, 100 - advice.syndrome_count * 20);
     }
 });
 
-
+//   localhost:8000/api/health/advice/23
 
 module.exports = router;
 /*
