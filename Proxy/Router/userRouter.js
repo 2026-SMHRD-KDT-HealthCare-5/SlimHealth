@@ -3,7 +3,7 @@
 const express = require("express");
 const router = express.Router();
 const conn = require("../config/database");
-
+const argon2 = require("argon2");
 
 // 💡 ERD에 명시된 테이블명 그대로 반영
 let table_name = "tbl_user"; 
@@ -36,8 +36,12 @@ router.post("/create", async ( req, res )=>{
         const sql_create_userdata = `INSERT INTO tbl_user
                 (id, password_hash, name, gender, birth_date, email, phone)
                 VALUES (?, ?, ?, ?, ?, ?, ?)`; 
-        const [createResult] = await conn.query(sql_create_userdata , [ account, password, name, genderCode, birthDate, email, phoneNumber ] );
-        // 빈칸 7개, 변수 7개
+        const hashedPassword = await argon2.hash(password);
+        const [createResult] = await conn.query(sql_create_userdata, [ account, hashedPassword, name, genderCode, birthDate, email, phoneNumber ]);
+        
+        // 기존 코드
+        // const [createResult] = await conn.query(sql_create_userdata , [ account, password, name, genderCode, birthDate, email, phoneNumber ] );
+        // // 빈칸 7개, 변수 7개
 
         console.log(createResult);
         console.log( " 성공적으로 새 유저 저장. 회원가입을 환영합니다. " );
@@ -66,32 +70,40 @@ router.post("/read", async ( req, res )=>{
         const { account, password } = req.body;
         
 
-        const sql_read_userdata = `SELECT * FROM tbl_user WHERE id = ? AND password_hash = ?`; 
+        const sql_read_userdata = `SELECT * FROM tbl_user WHERE id = ?`;
 
-        const [readResult] = await conn.query(sql_read_userdata , [ account, password ] );
+        const [readResult] = await conn.query(sql_read_userdata , [ account ]);
         console.log(readResult);
 
-        if (readResult.length > 0) {
-            console.log( " 성공적으로 로그인되었습니다. " );
-            
-            return res.status(200).json({
-                success: true,
-                message: "성공적으로 로그인되었습니다.",
-                user: {
-                    user_idx: readResult[0].user_idx,      // ERD 기준 PK
-                    account: readResult[0].id,             // ERD 기준 id
-                    name: readResult[0].name,              // ERD 기준 name
-                    email: readResult[0].email,            // ERD 기준 email
-                    phone: readResult[0].phone             // ERD 기준 phone
-                }
-            });
-        } else {
+        if (readResult.length === 0) {
             console.log( " 로그인을 실패하였습니다. 아이디나 비밀번호를 확인하세요. " );
             return res.status(401).json({
                 success: false,
                 message: "아이디 또는 비밀번호가 일치하지 않습니다."
             });
         }
+
+        const isValid = await argon2.verify(readResult[0].password_hash, password);
+        if (!isValid) {
+            console.log( " 로그인을 실패하였습니다. 아이디나 비밀번호를 확인하세요. " );
+            return res.status(401).json({
+                success: false,
+                message: "아이디 또는 비밀번호가 일치하지 않습니다."
+            });
+        }
+
+        console.log( " 성공적으로 로그인되었습니다. " );
+        return res.status(200).json({
+            success: true,
+            message: "성공적으로 로그인되었습니다.",
+            user: {
+                user_idx: readResult[0].user_idx,      // ERD 기준 PK
+                account: readResult[0].id,             // ERD 기준 id
+                name: readResult[0].name,              // ERD 기준 name
+                email: readResult[0].email,            // ERD 기준 email
+                phone: readResult[0].phone             // ERD 기준 phone
+            }
+        });
     }
     catch(err) {
         console.error("🚨 로그인 중 DB 에러 발생:", err);
