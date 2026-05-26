@@ -3,8 +3,7 @@
 const express = require("express");
 const router = express.Router();
 const conn = require("../config/database");
-const axios = require("axios");
-const pythonFastAPI = require("../config/pythonFastAPI");
+
 
 // 💡 ERD에 명시된 테이블명 그대로 반영
 let table_name = "tbl_user"; 
@@ -19,7 +18,9 @@ router.post("/create", async ( req, res )=>{
         // 각각           ID PW 이름              이멜 폰번
         // DB엔 회원번호, ID PW 이름 성별 생년 이멜 폰번 가입일
         // 회번 가입일은 알아서됨
-
+        
+        
+            const { account, password, name, gender, birthYear, email, phoneNumber } = req.body;
         // 단, db,py는 생년, 성별코드만 필요하므로 수정필요. 
             const genderCode = gender === "Male" ? "M" : gender === "Female" ? "F" : "M";
             // 삼항연산 : male이면m으로, female이면f로, 그외 M으로.
@@ -30,10 +31,12 @@ router.post("/create", async ( req, res )=>{
             // 생년을 생년월일로 저장해서 DB에 사용.
 
 
-        const { account, password, name, gender, birthYear, email, phoneNumber } = req.body;
+
         
-        const sql_create_userdata = `INSERT INTO ${table_name} VALUES ( null, ?,?,?,?,?,?,?, null )`; 
-        const [createResult] = await conn.query(sql_create_userdata , [ account, password, name, gender, birthYear, email, phoneNumber ] );
+        const sql_create_userdata = `INSERT INTO tbl_user
+                (id, password_hash, name, gender, birth_date, email, phone)
+                VALUES (?, ?, ?, ?, ?, ?, ?)`; 
+        const [createResult] = await conn.query(sql_create_userdata , [ account, password, name, genderCode, birthDate, email, phoneNumber ] );
         // 빈칸 7개, 변수 7개
 
         console.log(createResult);
@@ -63,7 +66,7 @@ router.post("/read", async ( req, res )=>{
         const { account, password } = req.body;
         
 
-        const sql_read_userdata = `SELECT * FROM ${table_name} WHERE id = ? AND password_hash = ?`; 
+        const sql_read_userdata = `SELECT * FROM tbl_user WHERE id = ? AND password_hash = ?`; 
 
         const [readResult] = await conn.query(sql_read_userdata , [ account, password ] );
         console.log(readResult);
@@ -141,32 +144,45 @@ router.post("/update", async ( req, res )=>{
 // =======================================================
 // 4. Delete - 삭제하기 = 회원탈퇴 (ERD 반영 🛠️)
 // =======================================================
-router.post("/delete", async ( req, res )=>{
-    try{
+router.post("/delete", async (req, res) => {
+    try {
         const { account } = req.body;
-        
-        // 💡 [교정] ERD 컬럼명 조건절 매핑
-        const sql_delete_userdata = `DELETE FROM ${table_name} WHERE id=? `; 
-        
-        const [deleteResult] = await conn.query(sql_delete_userdata , [ account ] );
+
+        if (!account) {
+            return res.status(400).json({
+                success: false,
+                message: "탈퇴할 계정 ID가 필요합니다."
+            });
+        }
+
+        const sql_delete_userdata = `
+            DELETE FROM tbl_user
+            WHERE id = ?
+        `;
+
+        const [deleteResult] = await conn.query(sql_delete_userdata, [account]);
+
         console.log(deleteResult);
-        
+
         if (deleteResult.affectedRows === 1) {
-            console.log( " 성공적으로 탈퇴 되었습니다. " );
+            console.log("성공적으로 탈퇴 되었습니다.");
+
             return res.status(200).json({
                 success: true,
                 message: "성공적으로 탈퇴되었습니다."
             });
         } else {
-            console.log( " 탈퇴 요청이 거부되었습니다. (아이디 불일치) " );
-            return res.status(400).json({
+            console.log("탈퇴 요청 실패: 존재하지 않는 사용자");
+
+            return res.status(404).json({
                 success: false,
-                message: "탈퇴 처리에 실패했습니다. 유효하지 않은 요청입니다."
+                message: "존재하지 않는 사용자입니다."
             });
         }
-    }
-    catch(err){
-        console.error("🚨 회원탈퇴 중 DB 에러 발생:", err); 
+
+    } catch (err) {
+        console.error("🚨 회원탈퇴 중 DB 에러 발생:", err);
+
         return res.status(500).json({
             success: false,
             message: "회원 탈퇴 처리 중 서버 내부 오류가 발생했습니다."
@@ -180,24 +196,45 @@ router.post("/delete", async ( req, res )=>{
 router.post("/check", async (req, res) => {
     try {
         const { account } = req.body;
-        const sql = `SELECT user_idx FROM ${table_name} WHERE id = ?`;
+
+        if (!account) {
+            return res.status(400).json({
+                success: false,
+                message: "아이디를 입력해주세요."
+            });
+        }
+
+        const sql = `
+            SELECT user_idx
+            FROM tbl_user
+            WHERE id = ?
+        `;
+
         const [result] = await conn.query(sql, [account]);
-        return res.status(200).json({ isDuplicate: result.length > 0 });
+
+        return res.status(200).json({
+            success: true,
+            isDuplicate: result.length > 0,
+            message: result.length > 0
+                ? "이미 사용 중인 아이디입니다."
+                : "사용 가능한 아이디입니다."
+        });
+
     } catch (err) {
         console.error("🚨 중복 확인 중 DB 에러:", err);
-        return res.status(500).json({ success: false, message: "서버 오류가 발생했습니다." });
+
+        return res.status(500).json({
+            success: false,
+            message: "서버 오류가 발생했습니다."
+        });
     }
 });
 
 
 
 
-
-
-
-
-
-
-
-
 module.exports = router;
+
+// 요청 주소 예시
+// http://localhost:8000/api/user/read
+// http://localhost:8000/api/user/update
