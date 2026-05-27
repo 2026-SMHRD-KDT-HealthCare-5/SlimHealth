@@ -25,8 +25,8 @@ const DataInput = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const id = searchParams.get("id");
-
-  const { openDialog, closeDialog } = useContext(Context);
+  const { openDialog, closeDialog, isLoading, setIsLoading } =
+    useContext(Context);
   const nav = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -77,6 +77,7 @@ const DataInput = () => {
   //ocr로 입력
   const handleOcrInput = async (files) => {
     //ocr 입력 api 연결
+    setIsLoading(true);
     try {
       const data = (await ocrInputApi(files)).ocr;
 
@@ -92,6 +93,8 @@ const DataInput = () => {
       });
     } catch (e) {
       console.log(e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -102,7 +105,7 @@ const DataInput = () => {
   //데이터 저장 버튼
   const handleSaveData = async () => {
     try {
-      await saveHealthDataApi({
+      const result = await saveHealthDataApi({
         ...formData,
         checkupDate,
         isDrink: isDrink ? 1 : 0,
@@ -118,8 +121,7 @@ const DataInput = () => {
           if (id) {
             nav(`${predictionPath}?id=${id}`);
           } else {
-            const recentData = await getRecentData();
-            nav(`${predictionPath}?id=${recentData.id}`);
+            nav(`${predictionPath}?id=${result.phyid}`);
           }
           closeDialog();
         }, //onConfirmClick
