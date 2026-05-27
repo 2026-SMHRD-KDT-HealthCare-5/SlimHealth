@@ -11,7 +11,7 @@ import { CheckBox } from "../components/CheckBox/CheckBox";
 import { OutlinedButton } from "../components/OutlinedButton/OutlinedButton";
 import Context from "../context/context";
 import { useNavigate } from "react-router-dom";
-import { dataInputPath, predictionPath } from "../App";
+import { dataInputPath, dataUpdatePath, predictionPath } from "../App";
 
 const modifyKey = "modify";
 const deleteKey = "delete";
@@ -81,7 +81,7 @@ const DataInputHistory = () => {
 
   //수정 버튼
   const moveModifyHistoryPage = (id) => {
-    nav(`${dataInputPath}?id=${id}`);
+    nav(`${dataUpdatePath}?id=${id}`);
   };
 
   const openDeleteDialog = (id) => {
@@ -151,7 +151,7 @@ const DataInputHistory = () => {
                         >
                           {column.title}
                         </Button>
-                      ) : typeof dataHistory[column.key] === "boolean" ? (
+                      ) : column.type === "boolean" ? (
                         <CheckBox isChecked={dataHistory[column.key]} />
                       ) : (
                         `${dataHistory[column.key]}${column.unit || ""}`

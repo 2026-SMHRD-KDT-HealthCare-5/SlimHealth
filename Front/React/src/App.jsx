@@ -15,6 +15,7 @@ import DataInputHistory from "./pages/DataInputHistory";
 export const loginPath = "/login";
 export const joinPath = "/join";
 export const dataInputPath = "/dataInput";
+export const dataUpdatePath = "/dataUpdate";
 export const predictionPath = "/prediction";
 export const dataInputHistoryPath = "/dataInputHistory";
 
@@ -36,6 +37,8 @@ const AppContent = () => {
           <Route path={joinPath} element={<Join />} />
           {/* 건강 데이터 입력 페이지 */}
           <Route path={dataInputPath} element={<DataInput />} />
+          {/* 건강 데이터 수정 페이지 */}
+          <Route path={dataUpdatePath} element={<DataInput />} />
           {/* 예측 페이지 */}
           <Route path={predictionPath} element={<Prediction />} />
           {/* 데이터 입력 내역 조회 페이지 */}

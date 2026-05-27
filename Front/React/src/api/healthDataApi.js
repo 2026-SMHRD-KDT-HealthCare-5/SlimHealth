@@ -1,29 +1,22 @@
 import client from "./axios";
 
+const healthBasePath = "/api/health";
+
 //건강 데이터 저장 api
-export const saveHealthDataApi = (body) => {
-  return new Promise((resolve) => {
-    resolve("데이터 저장 성공!");
-  });
+export const saveHealthDataApi = async (body) => {
+  let result;
+  if (body.id) {
+    result = await client.post(`${healthBasePath}/update/${body.id}`, body);
+  } else {
+    result = await client.post(`${healthBasePath}/create`, body);
+  }
+  return result.data;
 };
 
-//이전 데이터 가져오기 api
-export const getHealthDataApi = (id) => {
-  return new Promise((resolve) => {
-    resolve({
-      height: 130,
-      checkupDate: "1999-08-01",
-      weight: 60,
-      waist: 300,
-      hdl: 20,
-      sbp: 30,
-      dbp: 30,
-      bs: 40,
-      tg: 20,
-      isDrink: true,
-      isSmoke: false,
-    });
-  });
+//건강 데이터 가져오기 및 예측 api
+export const getHealthDataApi = async (id) => {
+  const result = await client.get(`${healthBasePath}/predict/${id}`, {});
+  return result.data;
 };
 
 //ocr 데이터 입력 api
@@ -281,175 +274,12 @@ export const getAnalysisContentApi = (id) => {
 };
 
 //건강 데이터 저장 내역 조회 api
-export const getHealthDataHistories = (page) => {
-  return new Promise((resolve) => {
-    resolve([
-      {
-        id: 1,
-        date: "2026-01-01",
-        height: 137,
-        age: 32,
-        weight: 60,
-        waist: 300,
-        hdl: 20,
-        sbp: 30,
-        dbp: 30,
-        bs: 40,
-        tg: 20,
-        isDrink: true,
-        isSmoke: false,
-        gender: "남성",
-      },
-      {
-        id: 2,
-        date: "2026-04-03",
-        height: 145,
-        age: 32,
-        weight: 63,
-        waist: 303,
-        hdl: 24,
-        sbp: 35,
-        dbp: 34,
-        bs: 42,
-        tg: 20,
-        isDrink: true,
-        isSmoke: false,
-        gender: "남성",
-      },
-      {
-        id: 3,
-        date: "2026-04-06",
-        height: 143,
-        age: 32,
-        weight: 63,
-        waist: 340,
-        hdl: 26,
-        sbp: 34,
-        dbp: 30,
-        bs: 41,
-        tg: 20,
-        isDrink: true,
-        isSmoke: false,
-        gender: "남성",
-      },
-      {
-        id: 4,
-        date: "2026-04-11",
-        height: 150,
-        age: 32,
-        weight: 70,
-        waist: 300,
-        hdl: 20,
-        sbp: 39,
-        dbp: 43,
-        bs: 40,
-        tg: 20,
-        isDrink: true,
-        isSmoke: false,
-        gender: "남성",
-      },
-      {
-        id: 5,
-        date: "2026-04-15",
-        height: 140,
-        age: 32,
-        weight: 65,
-        waist: 300,
-        hdl: 24,
-        sbp: 37,
-        dbp: 32,
-        bs: 40,
-        tg: 20,
-        isDrink: true,
-        isSmoke: false,
-        gender: "남성",
-      },
-      {
-        id: 6,
-        date: "2026-04-21",
-        height: 137,
-        age: 32,
-        weight: 60,
-        waist: 300,
-        hdl: 20,
-        sbp: 30,
-        dbp: 30,
-        bs: 40,
-        tg: 20,
-        isDrink: true,
-        isSmoke: false,
-        gender: "남성",
-      },
-      {
-        id: 7,
-        date: "2026-04-27",
-        height: 156,
-        age: 32,
-        weight: 76,
-        waist: 304,
-        hdl: 22,
-        sbp: 23,
-        dbp: 30,
-        bs: 40,
-        tg: 20,
-        isDrink: true,
-        isSmoke: false,
-        gender: "남성",
-      },
-      {
-        id: 8,
-        date: "2026-05-01",
-        height: 165,
-        age: 32,
-        weight: 64,
-        waist: 356,
-        hdl: 21,
-        sbp: 32,
-        dbp: 30,
-        bs: 40,
-        tg: 20,
-        isDrink: true,
-        isSmoke: false,
-        gender: "남성",
-      },
-      {
-        id: 9,
-        date: "2026-05-03",
-        height: 137,
-        age: 32,
-        weight: 63,
-        waist: 306,
-        hdl: 27,
-        sbp: 38,
-        dbp: 30,
-        bs: 40,
-        tg: 20,
-        isDrink: true,
-        isSmoke: false,
-        gender: "남성",
-      },
-      {
-        id: 10,
-        date: "2026-05-07",
-        height: 137,
-        age: 32,
-        weight: 60,
-        waist: 300,
-        hdl: 20,
-        sbp: 30,
-        dbp: 30,
-        bs: 40,
-        tg: 20,
-        isDrink: true,
-        isSmoke: false,
-        gender: "남성",
-      },
-    ]);
-  });
+export const getHealthDataHistories = async (page) => {
+  const result = await client.post(`${healthBasePath}/list`, { page });
+  return result.data;
 };
 
-export const deleteDataHistory = (id) => {
-  return new Promise((resolve) => {
-    resolve("삭제 성공!");
-  });
+export const deleteDataHistory = async (id) => {
+  const result = await client.delete(`${healthBasePath}/delete/${id}`, {});
+  return result.data;
 };
