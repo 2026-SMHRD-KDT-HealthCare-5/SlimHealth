@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-import { getApiExample } from "../api/api";
 import Context from "../context/context";
 import { TopNavigation } from "../components/TopNavigation";
 import { Slider } from "../components/Slider";
