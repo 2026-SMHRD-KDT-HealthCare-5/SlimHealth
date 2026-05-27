@@ -4,14 +4,10 @@ import { SummaryBox } from "../components/SummaryBox/SummaryBox";
 import { ResultBox } from "../components/ResultBox/ResultBox";
 import { ImprovementBox } from "../components/ImprovementBox/ImprovementBox";
 import { Slider } from "../components/Slider";
-import {
-  getHealthAdviceApi,
-  getHealthDataApi,
-  getKPIPredictionApi,
-  getSummaryResultApi,
-} from "../api/healthDataApi";
+import { getHealthAdviceApi, getHealthDataApi } from "../api/healthDataApi";
 import { EBarChart } from "../components/EBarChart/EBarChart";
 import {
+  getBmi,
   getCurrentCharacterStage,
   sliderImageList,
   sliderValueToWeight,
@@ -105,7 +101,7 @@ const Prediction = () => {
 
         const tempWeight = parseInt(data.physical.weight);
         setWeight(tempWeight);
-        const tempBmi = 27.6;
+        const tempBmi = getBmi(data.physical.height, tempWeight);
         setBmi(tempBmi);
         const tempMaxLossKg = data.predictions.length;
         setMaxLossKg(tempMaxLossKg);
@@ -128,32 +124,34 @@ const Prediction = () => {
         );
 
         //5대지표 예측결과 설정
-        setKpiResultList(convertKPIResultList(data, adviceData));
+        setKpiResultList(convertKPIResultList(adviceData));
+
+        //요약박스 설정
+        /**
+         * description={summary.description}
+                  grade={summary.risk_level}
+                  score={summary.score}
+                  title={summary.title}
+         */
+        setSummary({
+          risk_level: "위험",
+          score: 72,
+          title: "건강 주의보! 지금 바로 확인하세요!",
+          description:
+            "대사증후군 위험군에 해당할 수 있습니다. 방치하면 당뇨병, 고혈압, 심혈관 질환의 위험이 3배 이상 증가합니다!",
+        });
 
         //개선사항 설정
-        setImprovementList(adviceData.improvement);
+        setImprovementList(adviceData.lifestyle_tips);
 
         //긴 분석내용 설정
-        setAnalysisContent(adviceData.analysis);
+        setAnalysisContent(adviceData.total_advice);
       } catch (e) {
         console.log(e);
       }
     };
 
-    //요약 박스 설정
-    const fetchSummaryResult = async () => {
-      try {
-        const data = await getSummaryResultApi(id);
-        setSummary(data);
-      } catch (e) {
-        console.log(e);
-      }
-    };
-
-    const fetchData = async () => {
-      await Promise.all([fetchSummaryResult(), fetchKPIPrediction()]);
-    };
-    fetchData();
+    fetchKPIPrediction();
   }, [id]);
 
   return (

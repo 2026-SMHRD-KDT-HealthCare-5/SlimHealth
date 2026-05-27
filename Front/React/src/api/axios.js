@@ -17,14 +17,9 @@ client.interceptors.request.use(
       localStorage.getItem(userInfoKey) || "null",
     ).info;
     const accessToken = userInfo?.accessToken || "";
-    const userId = userInfo?.user_idx || "";
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-
-    if (userId) {
-      config.headers["x-user-id"] = userId;
     }
 
     return config;

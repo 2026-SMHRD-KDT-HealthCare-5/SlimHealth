@@ -78,7 +78,10 @@ export const EBarChart = ({ metrics }) => {
         fontWeight: 500,
       },
       indicator: metrics.map((item) => {
-        return { name: item.name, max: chartMaxValue };
+        return {
+          name: item.name.replace("콜레스테롤", ""),
+          max: chartMaxValue,
+        };
       }),
     },
     series: [

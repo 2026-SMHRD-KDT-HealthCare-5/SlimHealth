@@ -92,31 +92,31 @@ export const KPIInputFields = [
     title: "HDL 콜레스테롤",
     placeholder: "현재 HDL 콜레스테롤 수치(mg/dl) 입력",
     key: "hdl",
-    unit: "mg/dl",
+    unit: "mg/dL",
   },
   {
-    title: "수축기 혈압",
+    title: "수축기혈압",
     placeholder: "현재 수축기 혈압(mmHg) 입력",
     key: "sbp",
     unit: "mmHg",
   },
   {
-    title: "이완기 혈압",
+    title: "이완기혈압",
     placeholder: "현재 이완기 혈압(mmHg) 입력",
     key: "dbp",
     unit: "mmHg",
   },
   {
-    title: "공복시 혈당",
+    title: "공복혈당",
     placeholder: "현재 혈당(mg/dl) 입력",
     key: "bs",
-    unit: "mg/dl",
+    unit: "mg/dL",
   },
   {
     title: "중성지방",
     placeholder: "현재 중성지방(mg/dl) 입력",
     key: "tg",
-    unit: "mg/dl",
+    unit: "mg/dL",
   },
 ];
 
@@ -282,4 +282,10 @@ export const weightToSliderValue = (weight, sliderMaxValue, sliderMinValue) => {
     ((sliderMaxValue - weight) / (sliderMaxValue - sliderMinValue)) *
     sliderWidth
   );
+};
+
+export const getBmi = (height, weight) => {
+  //cm height를 미터 height로 변환
+  const meterHeight = height / 100;
+  return weight / (meterHeight * meterHeight);
 };

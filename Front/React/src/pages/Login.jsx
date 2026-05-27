@@ -22,7 +22,7 @@ const Login = () => {
     try {
       const data = await loginApi({ account, password });
       if (data.success) {
-        processLogin(data.user);
+        processLogin({ ...data.user, accessToken: data.token });
         nav("/");
       } else {
         openDialog(

@@ -4,13 +4,13 @@ const userBasePath = "/api/user";
 
 //아이디 중복확인 api
 export const checkDuplicateAccountApi = async (account) => {
-  const result = await client.post(`${userBasePath}/check`, { account });
+  const result = await loginClient.post(`${userBasePath}/check`, { account });
   return result.data;
 };
 
 //회원가입 api
 export const joinApi = async (body) => {
-  const result = await client.post(`${userBasePath}/create`, body);
+  const result = await loginClient.post(`${userBasePath}/create`, body);
   return result.data;
 };
 
