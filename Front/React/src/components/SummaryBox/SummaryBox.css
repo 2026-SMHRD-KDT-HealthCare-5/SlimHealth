@@ -5,14 +5,14 @@
 
   display: inline-flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 28px;
   width: 720px;
 
   border-radius: 12px;
   padding-top: 50px;
   padding-bottom: 50px;
-  padding-left: 30px;
-  padding-right: 30px;
+  padding-left: 40px;
+  padding-right: 40px;
 }
 
 .danger {
@@ -25,4 +25,51 @@
   background-color: #faeeda;
   border: 1px solid #ef9f27;
   color: #854f0b;
+}
+
+.summaryBadge {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.summaryBadge.danger {
+  background-color: #ff080c;
+  color: #fff;
+}
+.summaryBadge.warning {
+  background-color: #ef9f27;
+  color: #000;
+}
+.summaryBadge.normal {
+  background-color: #008000;
+  color: #fff;
+}
+
+.miniCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px 0;
+  border-radius: 10px;
+  flex: 1;
+  font-size: 18px;
+}
+
+.miniCard.danger {
+  background-color: #fff0f0;
+  border: 1px solid #ff080c;
+}
+.miniCard.warning {
+  background-color: #fff7ec;
+  border: 1px solid #ef9f27;
+}
+.miniCard.normal {
+  background-color: #f0fff0;
+  border: 1px solid #008000;
 }
