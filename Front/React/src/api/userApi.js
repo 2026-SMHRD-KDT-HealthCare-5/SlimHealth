@@ -1,34 +1,21 @@
-import client from "./axios";
+import client, { loginClient } from "./axios";
+
+const userBasePath = "/api/user";
 
 //아이디 중복확인 api
-export const checkDuplicateAccountApi = (account) => {
-  return new Promise((resolve) => {
-    resolve({ isDuplicate: account === "bcy" });
-  });
+export const checkDuplicateAccountApi = async (account) => {
+  const result = await loginClient.post(`${userBasePath}/check`, { account });
+  return result.data;
 };
 
 //회원가입 api
-export const joinApi = (body) => {
-  return new Promise((resolve) => {
-    resolve("회원가입 성공!");
-  });
+export const joinApi = async (body) => {
+  const result = await loginClient.post(`${userBasePath}/create`, body);
+  return result.data;
 };
 
 //로그인 api
-export const loginApi = (body) => {
-  return new Promise((resolve) => {
-    const { account, password } = body;
-    if (account === "bcy" && password === "bcy1111") {
-      resolve({
-        message: "로그인 성공",
-        result: true,
-        userInfo: { userId: "1", accessToken: "token", refreshToken: "token" },
-      });
-    } else {
-      resolve({
-        message: "아이디 또는 비밀번호를 확인해주세요.",
-        result: false,
-      });
-    }
-  });
+export const loginApi = async (body) => {
+  const result = await loginClient.post(`${userBasePath}/read`, body);
+  return result.data;
 };

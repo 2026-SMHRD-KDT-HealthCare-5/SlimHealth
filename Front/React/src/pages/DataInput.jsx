@@ -10,12 +10,15 @@ import {
   saveHealthDataApi,
 } from "../api/healthDataApi";
 import Context from "../context/context";
-import { inputFields, inputFixWidth } from "../utils/utils";
+import {
+  dataInputFields,
+  inputFields,
+  inputFixWidth,
+  ocrImageSize,
+} from "../utils/utils";
 import { CheckBox } from "../components/CheckBox/CheckBox";
 import { RadioButton } from "../components/RadioButton/RadioButton";
 import { predictionPath } from "../App";
-
-const ocrImageSize = 509;
 
 const DataInput = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,14 +29,14 @@ const DataInput = () => {
   const nav = useNavigate();
 
   const [formData, setFormData] = useState({
-    height: 0,
-    weight: 0,
-    waist: 0,
-    hdl: 0,
-    sbp: 0,
-    dbp: 0,
-    bs: 0,
-    tg: 0,
+    userHeight: 0,
+    userWeight: 0,
+    waistLine: 0,
+    cholesterol: 0,
+    systolicBp: 0,
+    diastolicBp: 0,
+    bloodGlucose: 0,
+    triglyceride: 0,
   });
 
   const [isDrink, setIsDrink] = useState(false);
@@ -74,10 +77,18 @@ const DataInput = () => {
   const handleOcrInput = async (files) => {
     //ocr 입력 api 연결
     try {
-      const data = await ocrInputApi(files);
+      const data = (await ocrInputApi(files)).ocr;
 
-      setFormData(data);
-      setCheckupDate(data.checkupDate);
+      setFormData({
+        userHeight: data.height,
+        userWeight: data.weight,
+        waistLine: data.waist,
+        cholesterol: data.hdl,
+        systolicBp: data.sbp,
+        diastolicBp: data.dbp,
+        bloodGlucose: data.bs,
+        triglyceride: data.tg,
+      });
     } catch (e) {
       console.log(e);
     }
@@ -85,7 +96,7 @@ const DataInput = () => {
 
   //저장 버튼 활성화 여부
   const isSaveButtonDisable =
-    inputFields.some((item) => !formData[item.key]) || !checkupDate;
+    dataInputFields.some((item) => !formData[item.key]) || !checkupDate;
 
   //데이터 저장 버튼
   const handleSaveData = async () => {
@@ -93,8 +104,8 @@ const DataInput = () => {
       await saveHealthDataApi({
         ...formData,
         checkupDate,
-        isDrink,
-        isSmoke,
+        isDrink: isDrink ? 1 : 0,
+        isSmoke: isSmoke ? 1 : 0,
         id,
       });
 
@@ -103,7 +114,11 @@ const DataInput = () => {
         "데이터가 저장되었습니다. 해당 데이터로 바로 예측하시겠습니까?", //content
         true, //isCancelButton
         () => {
-          nav(predictionPath);
+          if (id) {
+            nav(`${predictionPath}?id=${id}`);
+          } else {
+            nav(predictionPath);
+          }
           closeDialog();
         }, //onConfirmClick
       );
@@ -126,13 +141,24 @@ const DataInput = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        //이전 데이터 연동
-        const data = await getHealthDataApi(id);
+        if (id) {
+          //이전 데이터 연동
+          const data = (await getHealthDataApi(id)).physical;
 
-        setFormData(data);
-        setIsDrink(data.isDrink);
-        setIsSmoke(data.isSmoke);
-        setCheckupDate(data.checkupDate);
+          setFormData({
+            userHeight: data.height,
+            userWeight: data.weight,
+            waistLine: data.waist,
+            cholesterol: data.hdl,
+            systolicBp: data.sbp,
+            diastolicBp: data.dbp,
+            bloodGlucose: data.bs,
+            triglyceride: data.tg,
+          });
+          setIsDrink(data.drink === 1);
+          setIsSmoke(data.smoke === 1);
+          setCheckupDate(data.checkup_date);
+        }
       } catch (e) {
         console.log(e);
       }
@@ -157,13 +183,14 @@ const DataInput = () => {
         또는 진단서 파일을 넣고 OCR로 입력할 수도 있습니다.
       </Text>
       <Text textStyle={"bold"}>
-        (단, OCR 입력의 경우 음주여부와 흡연여부는 인식되지 않습니다.)
+        (단, OCR 입력의 경우 검진일자와 음주여부와 흡연여부는 인식되지
+        않습니다.)
       </Text>
       <div style={{ height: 30 }}></div>
       <div className="horizontal-flex">
         {/* 데이터 입력 부분 */}
         <div className="vertical-flex">
-          {inputFields.map((item) => {
+          {dataInputFields.map((item) => {
             return (
               <Input
                 key={item.key}

@@ -1,30 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { TopNavigation } from "../components/TopNavigation";
 import { Text } from "../components/Text/Text";
 import { SummaryBox } from "../components/SummaryBox/SummaryBox";
 import { ResultBox } from "../components/ResultBox/ResultBox";
 import { ImprovementBox } from "../components/ImprovementBox/ImprovementBox";
-import { KpiBarChart } from "../components/KpiBarChart/KpiBarChart";
-import { Slider, sliderWidth } from "../components/Slider";
-import {
-  getAnalysisContentApi,
-  getImprovementListApi,
-  getKPIPredictionApi,
-  getSummaryResultApi,
-} from "../api/healthDataApi";
-import character1 from "../assets/character1.png";
-import character2 from "../assets/character2.png";
-import character3 from "../assets/character3.png";
-import character4 from "../assets/character4.png";
-import character5 from "../assets/character5.png";
+import { Slider } from "../components/Slider";
+import { getHealthAdviceApi, getHealthDataApi } from "../api/healthDataApi";
 import { EBarChart } from "../components/EBarChart/EBarChart";
 import {
+  getBmi,
   getCurrentCharacterStage,
   sliderImageList,
   sliderValueToWeight,
   weightToSliderValue,
 } from "../utils/utils";
 import { useSearchParams } from "react-router-dom";
+import { convertKPIResultList } from "../features/predictionFeatures";
 
 const Prediction = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -32,16 +22,19 @@ const Prediction = () => {
   const id = searchParams.get("id");
 
   //슬라이더 부분
-  const [sliderValue, setSliderValue] = useState(0);
-  const [sliderMaxValue, setSliderMaxValue] = useState(0);
-  const [sliderMinValue, setSliderMinValue] = useState(0);
-  const [bmi, setBmi] = useState(0);
-  const [maxLossKg, setMaxLossKg] = useState(0);
-  const [predictions, setPredictions] = useState({});
-  const [weight, setWeight] = useState(0);
+  const [predictions, setPredictions] = useState([]);
+
   const [currentSliderImage, setCurrentSliderImage] = useState(
     sliderImageList[0],
   );
+
+  const [sliderValue, setSliderValue] = useState(0);
+  const [sliderMaxValue, setSliderMaxValue] = useState(0);
+  const [sliderMinValue, setSliderMinValue] = useState(0);
+
+  const [bmi, setBmi] = useState(0);
+  const [maxLossKg, setMaxLossKg] = useState(0);
+  const [weight, setWeight] = useState(0);
 
   //요약 부분
   const [summary, setSummary] = useState(null);
@@ -50,12 +43,12 @@ const Prediction = () => {
   const [kpiResultList, setKpiResultList] = useState([]);
 
   //개선사항 부분
-  const [improvementList, setImprovementList] = useState({});
+  const [improvementList, setImprovementList] = useState(null);
 
   //긴 분석내용 부분
   const [analysisContent, setAnalysisContent] = useState("");
 
-  const handleChangeSlider = (value, isSetResult) => {
+  const handleChangeSlider = (value) => {
     setSliderValue(value);
 
     const tempWeight = sliderValueToWeight(
@@ -77,39 +70,40 @@ const Prediction = () => {
     );
 
     //예측 부분 조정
-    if (isSetResult) {
-      setKpiResultList((prev) =>
-        prev.map((item) => ({
-          ...item,
-          predictionValue:
-            currentLossKg == 0
-              ? item.current_value
-              : predictions[`${currentLossKg}kg`][item.key],
-        })),
-      );
-    }
+    setKpiResultList((prev) =>
+      prev.map((item) => ({
+        ...item,
+        predictionValue:
+          currentLossKg == 0
+            ? item.current_value
+            : predictions[predictions.length - currentLossKg][item.key],
+      })),
+    );
   };
 
-  //api 연결 부분 필요
   useEffect(() => {
     //5대지표 예측결과 및 슬라이더 초기값 설정
     const fetchKPIPrediction = async () => {
       try {
-        const data = await getKPIPredictionApi(id);
+        const [data, adviceData] = await Promise.all([
+          getHealthDataApi(id),
+          getHealthAdviceApi(id),
+        ]);
 
         const tempPredictions = data.predictions;
         setPredictions(tempPredictions);
 
-        const tempSliderMaxValue = data.weight;
+        const tempSliderMaxValue = parseInt(data.physical.weight);
         setSliderMaxValue(tempSliderMaxValue);
-        const tempSliderMinValue = data.weight - data.max_loss_kg;
+        const tempSliderMinValue =
+          parseInt(data.physical.weight) - data.predictions.length;
         setSliderMinValue(tempSliderMinValue);
 
-        const tempWeight = data.weight;
+        const tempWeight = parseInt(data.physical.weight);
         setWeight(tempWeight);
-        const tempBmi = data.current_bmi;
+        const tempBmi = getBmi(data.physical.height, tempWeight);
         setBmi(tempBmi);
-        const tempMaxLossKg = data.max_loss_kg;
+        const tempMaxLossKg = data.predictions.length;
         setMaxLossKg(tempMaxLossKg);
 
         const sliderVal = weightToSliderValue(
@@ -130,55 +124,34 @@ const Prediction = () => {
         );
 
         //5대지표 예측결과 설정
-        setKpiResultList(
-          data.result.map((item) => {
-            return { ...item, predictionValue: item.current_value };
-          }),
-        );
+        setKpiResultList(convertKPIResultList(adviceData));
+
+        //요약박스 설정
+        /**
+         * description={summary.description}
+                  grade={summary.risk_level}
+                  score={summary.score}
+                  title={summary.title}
+         */
+        setSummary({
+          risk_level: "위험",
+          score: 72,
+          title: "건강 주의보! 지금 바로 확인하세요!",
+          description:
+            "대사증후군 위험군에 해당할 수 있습니다. 방치하면 당뇨병, 고혈압, 심혈관 질환의 위험이 3배 이상 증가합니다!",
+        });
+
+        //개선사항 설정
+        setImprovementList(adviceData.lifestyle_tips);
+
+        //긴 분석내용 설정
+        setAnalysisContent(adviceData.total_advice);
       } catch (e) {
         console.log(e);
       }
     };
 
-    //요약 박스 설정
-    const fetchSummaryResult = async () => {
-      try {
-        const data = await getSummaryResultApi(id);
-        setSummary(data);
-      } catch (e) {
-        console.log(e);
-      }
-    };
-
-    //개선사항 설정
-    const fetchImprovementList = async () => {
-      try {
-        const data = await getImprovementListApi(id);
-        setImprovementList(data);
-      } catch (e) {
-        console.log(e);
-      }
-    };
-
-    //분석내용 설정
-    const fetchAnalysisContent = async () => {
-      try {
-        const data = await getAnalysisContentApi(id);
-        setAnalysisContent(data);
-      } catch (e) {
-        console.log(e);
-      }
-    };
-
-    const fetchData = async () => {
-      await Promise.all([
-        fetchSummaryResult(),
-        fetchKPIPrediction(),
-        fetchImprovementList(),
-        fetchAnalysisContent(),
-      ]);
-    };
-    fetchData();
+    fetchKPIPrediction();
   }, [id]);
 
   return (
@@ -197,7 +170,7 @@ const Prediction = () => {
               />
               <Slider
                 onChange={(value) => {
-                  handleChangeSlider(value, true);
+                  handleChangeSlider(value);
                 }}
                 value={sliderValue}
                 maxValue={sliderMaxValue}

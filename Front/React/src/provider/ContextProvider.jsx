@@ -22,7 +22,12 @@ const ContextProvider = ({ children }) => {
 
   const processLogin = (info) => {
     setUserInfo(info);
-    localStorage.setItem(userInfoKey, info);
+    localStorage.setItem(
+      userInfoKey,
+      JSON.stringify({
+        info,
+      }),
+    );
   };
 
   const processLogout = () => {

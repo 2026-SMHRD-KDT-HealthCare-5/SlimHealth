@@ -3,21 +3,122 @@ import character2 from "../assets/character2.png";
 import character3 from "../assets/character3.png";
 import character4 from "../assets/character4.png";
 import character5 from "../assets/character5.png";
-import pCharacter1 from "../assets/p_character1.png";
-import pCharacter2 from "../assets/p_character2.png";
-import pCharacter3 from "../assets/p_character3.png";
-import pCharacter4 from "../assets/p_character4.png";
-import pCharacter5 from "../assets/p_character5.png";
-import pCharacter6 from "../assets/p_character6.png";
-import pCharacter7 from "../assets/p_character7.png";
-import pCharacter8 from "../assets/p_character8.png";
-import pCharacter9 from "../assets/p_character9.png";
+// import pCharacter1 from "../assets/p_character1.png";
+// import pCharacter2 from "../assets/p_character2.png";
+// import pCharacter3 from "../assets/p_character3.png";
+// import pCharacter4 from "../assets/p_character4.png";
+// import pCharacter5 from "../assets/p_character5.png";
+// import pCharacter6 from "../assets/p_character6.png";
+// import pCharacter7 from "../assets/p_character7.png";
+// import pCharacter8 from "../assets/p_character8.png";
+// import pCharacter9 from "../assets/p_character9.png";
+import pCharacter1 from "../assets/stage_1.png";
+import pCharacter2 from "../assets/stage_2.png";
+import pCharacter3 from "../assets/stage_3.png";
+import pCharacter4 from "../assets/stage_4.png";
+import pCharacter5 from "../assets/stage_5.png";
+import pCharacter6 from "../assets/stage_6.png";
+import pCharacter7 from "../assets/stage_7.png";
+import pCharacter8 from "../assets/stage_8.png";
+import pCharacter9 from "../assets/stage_9.png";
 import { sliderWidth } from "../components/Slider";
 
 export const userInfoKey = "userInfo";
 
 export const inputFixWidth = 140;
 export const checkBoxSize = 30;
+
+export const ocrImageSize = 509;
+
+export const dataInputFields = [
+  {
+    title: "키",
+    placeholder: "현재 키(cm) 입력",
+    key: "userHeight",
+    unit: "cm",
+  },
+  {
+    title: "체중",
+    placeholder: "현재 체중(kg) 입력",
+    key: "userWeight",
+    unit: "kg",
+  },
+  {
+    title: "허리둘레",
+    placeholder: "현재 허리둘레(cm) 입력",
+    key: "waistLine",
+    unit: "cm",
+  },
+  {
+    title: "HDL 콜레스테롤",
+    placeholder: "현재 HDL 콜레스테롤 수치(mg/dl) 입력",
+    key: "cholesterol",
+    unit: "mg/dl",
+  },
+  {
+    title: "수축기 혈압",
+    placeholder: "현재 수축기 혈압(mmHg) 입력",
+    key: "systolicBp",
+    unit: "mmHg",
+  },
+  {
+    title: "이완기 혈압",
+    placeholder: "현재 이완기 혈압(mmHg) 입력",
+    key: "diastolicBp",
+    unit: "mmHg",
+  },
+  {
+    title: "공복시 혈당",
+    placeholder: "현재 혈당(mg/dl) 입력",
+    key: "bloodGlucose",
+    unit: "mg/dl",
+  },
+  {
+    title: "중성지방",
+    placeholder: "현재 중성지방(mg/dl) 입력",
+    key: "triglyceride",
+    unit: "mg/dl",
+  },
+];
+
+export const KPIInputFields = [
+  {
+    title: "허리둘레",
+    placeholder: "현재 허리둘레(cm) 입력",
+    key: "waist",
+    unit: "cm",
+  },
+  {
+    title: "HDL 콜레스테롤",
+    placeholder: "현재 HDL 콜레스테롤 수치(mg/dl) 입력",
+    key: "hdl",
+    unit: "mg/dL",
+  },
+  {
+    title: "수축기혈압",
+    placeholder: "현재 수축기 혈압(mmHg) 입력",
+    key: "sbp",
+    unit: "mmHg",
+  },
+  {
+    title: "이완기혈압",
+    placeholder: "현재 이완기 혈압(mmHg) 입력",
+    key: "dbp",
+    unit: "mmHg",
+  },
+  {
+    title: "공복혈당",
+    placeholder: "현재 혈당(mg/dl) 입력",
+    key: "bs",
+    unit: "mg/dL",
+  },
+  {
+    title: "중성지방",
+    placeholder: "현재 중성지방(mg/dl) 입력",
+    key: "tg",
+    unit: "mg/dL",
+  },
+];
 
 export const inputFields = [
   {
@@ -32,42 +133,7 @@ export const inputFields = [
     key: "weight",
     unit: "kg",
   },
-  {
-    title: "허리둘레",
-    placeholder: "현재 허리둘레(cm) 입력",
-    key: "waist",
-    unit: "cm",
-  },
-  {
-    title: "HDL 콜레스테롤",
-    placeholder: "현재 HDL 콜레스테롤 수치(mg/dl) 입력",
-    key: "hdl",
-    unit: "mg/dl",
-  },
-  {
-    title: "수축기 혈압",
-    placeholder: "현재 수축기 혈압(mmHg) 입력",
-    key: "sbp",
-    unit: "mmHg",
-  },
-  {
-    title: "이완기 혈압",
-    placeholder: "현재 이완기 혈압(mmHg) 입력",
-    key: "dbp",
-    unit: "mmHg",
-  },
-  {
-    title: "공복시 혈당",
-    placeholder: "현재 혈당(mg/dl) 입력",
-    key: "bs",
-    unit: "mg/dl",
-  },
-  {
-    title: "중성지방",
-    placeholder: "현재 중성지방(mg/dl) 입력",
-    key: "tg",
-    unit: "mg/dl",
-  },
+  ...KPIInputFields,
 ];
 
 export const totalInputFields = [
@@ -79,11 +145,13 @@ export const totalInputFields = [
   },
   {
     title: "음주여부",
-    key: "isDrink",
+    key: "drink",
+    type: "boolean",
   },
   {
     title: "흡연여부",
-    key: "isSmoke",
+    key: "smoke",
+    type: "boolean",
   },
   {
     title: "성별",
@@ -214,4 +282,10 @@ export const weightToSliderValue = (weight, sliderMaxValue, sliderMinValue) => {
     ((sliderMaxValue - weight) / (sliderMaxValue - sliderMinValue)) *
     sliderWidth
   );
+};
+
+export const getBmi = (height, weight) => {
+  //cm height를 미터 height로 변환
+  const meterHeight = height / 100;
+  return weight / (meterHeight * meterHeight);
 };
