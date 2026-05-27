@@ -6,6 +6,7 @@ import { userInfoKey } from "../utils/utils";
 //유저 정보를 저장하는 contextapi
 const ContextProvider = ({ children }) => {
   const [userInfo, setUserInfo] = useState(localStorage.getItem(userInfoKey));
+  const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogInfo, setDialogInfo] = useState({
     title: "",
@@ -46,6 +47,8 @@ const ContextProvider = ({ children }) => {
         dialogInfo,
         processLogin,
         processLogout,
+        isLoading,
+        setIsLoading,
       }}
     >
       {children}

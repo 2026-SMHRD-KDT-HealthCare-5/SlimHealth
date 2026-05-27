@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Text } from "../components/Text/Text";
 import { SummaryBox } from "../components/SummaryBox/SummaryBox";
 import { ResultBox } from "../components/ResultBox/ResultBox";
@@ -15,8 +15,10 @@ import {
 } from "../utils/utils";
 import { useSearchParams } from "react-router-dom";
 import { convertKPIResultList } from "../features/predictionFeatures";
+import Context from "../context/context";
 
 const Prediction = () => {
+  const { isLoading, setIsLoading } = useContext(Context);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const id = searchParams.get("id");
@@ -84,6 +86,7 @@ const Prediction = () => {
   useEffect(() => {
     //5대지표 예측결과 및 슬라이더 초기값 설정
     const fetchKPIPrediction = async () => {
+      setIsLoading(true);
       try {
         const [data, adviceData] = await Promise.all([
           getHealthDataApi(id),
@@ -148,11 +151,13 @@ const Prediction = () => {
         setAnalysisContent(adviceData.total_advice);
       } catch (e) {
         console.log(e);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchKPIPrediction();
-  }, [id]);
+  }, [id, setIsLoading]);
 
   return (
     <div className="contentContainer">
