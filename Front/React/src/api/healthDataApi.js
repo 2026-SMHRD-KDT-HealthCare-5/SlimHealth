@@ -1,6 +1,7 @@
 import client from "./axios";
 
 const healthBasePath = "/api/health";
+const ocrBasePath = "/api/ocr";
 
 //건강 데이터 저장 api
 export const saveHealthDataApi = async (body) => {
@@ -20,20 +21,17 @@ export const getHealthDataApi = async (id) => {
 };
 
 //ocr 데이터 입력 api
-export const ocrInputApi = (files) => {
-  return new Promise((resolve) => {
-    resolve({
-      height: 170,
-      checkupDate: "2000-08-01",
-      weight: 70,
-      waist: 400,
-      hdl: 30,
-      sbp: 50,
-      dbp: 50,
-      bs: 60,
-      tg: 30,
-    });
+export const ocrInputApi = async (files) => {
+  const formData = new FormData();
+  files.map((file) => {
+    formData.append("files", file);
   });
+  const result = await client.post(`${ocrBasePath}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return result.data;
 };
 
 //5대지표 예측결과 및 슬라이더 초기값 api

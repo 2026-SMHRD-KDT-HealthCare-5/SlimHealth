@@ -77,10 +77,18 @@ const DataInput = () => {
   const handleOcrInput = async (files) => {
     //ocr 입력 api 연결
     try {
-      const data = await ocrInputApi(files);
+      const data = (await ocrInputApi(files)).ocr;
 
-      setFormData(data);
-      setCheckupDate(data.checkupDate);
+      setFormData({
+        userHeight: data.height,
+        userWeight: data.weight,
+        waistLine: data.waist,
+        cholesterol: data.hdl,
+        systolicBp: data.sbp,
+        diastolicBp: data.dbp,
+        bloodGlucose: data.bs,
+        triglyceride: data.tg,
+      });
     } catch (e) {
       console.log(e);
     }
@@ -175,7 +183,8 @@ const DataInput = () => {
         또는 진단서 파일을 넣고 OCR로 입력할 수도 있습니다.
       </Text>
       <Text textStyle={"bold"}>
-        (단, OCR 입력의 경우 음주여부와 흡연여부는 인식되지 않습니다.)
+        (단, OCR 입력의 경우 검진일자와 음주여부와 흡연여부는 인식되지
+        않습니다.)
       </Text>
       <div style={{ height: 30 }}></div>
       <div className="horizontal-flex">
