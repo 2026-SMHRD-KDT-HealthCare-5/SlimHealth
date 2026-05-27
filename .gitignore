@@ -3,3 +3,4 @@
 .env.local
 node_modules/
 Proxy/node_modules/
+Proxy/uploads/.claude/
