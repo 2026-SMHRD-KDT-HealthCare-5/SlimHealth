@@ -3,14 +3,17 @@
 const express = require("express");
 const router = express.Router();
 const conn = require("../config/database");
-
+const jwt = require("jsonwebtoken");
+const authRequired = require("../middleware/authRequired");
+const argon2 = require("argon2");
 
 // 💡 ERD에 명시된 테이블명 그대로 반영
 let table_name = "tbl_user"; 
 
 
+
 // =======================================================
-// 1. Create - 생성하기 = 회원가입 (ERD 반영 👍)
+// 1. Create - 생성하기 = 회원가입
 // =======================================================
 router.post("/create", async ( req, res )=>{
     try{
@@ -36,8 +39,9 @@ router.post("/create", async ( req, res )=>{
         const sql_create_userdata = `INSERT INTO tbl_user
                 (id, password_hash, name, gender, birth_date, email, phone)
                 VALUES (?, ?, ?, ?, ?, ?, ?)`; 
-        const [createResult] = await conn.query(sql_create_userdata , [ account, password, name, genderCode, birthDate, email, phoneNumber ] );
-        // 빈칸 7개, 변수 7개
+        const hashedPassword = await argon2.hash(password);
+        const [createResult] = await conn.query(sql_create_userdata, [ account, hashedPassword, name, genderCode, birthDate, email, phoneNumber ]);
+        
 
         console.log(createResult);
         console.log( " 성공적으로 새 유저 저장. 회원가입을 환영합니다. " );
@@ -57,43 +61,74 @@ router.post("/create", async ( req, res )=>{
     }
 });
 
+// 가입시에는 토큰 안씀 -> 해시코드 그대로 사용
 
 // =======================================================
-// 2. Read - 조회하기 = 로그인 (ERD 반영 🛠️)
+// 2. Read - 조회하기 = 로그인 + JWT 토큰 발급 
 // =======================================================
-router.post("/read", async ( req, res )=>{
-    try{
+router.post("/read", async (req, res) => {
+    try {
         const { account, password } = req.body;
-        
 
-        const sql_read_userdata = `SELECT * FROM tbl_user WHERE id = ? AND password_hash = ?`; 
+        if (!account || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "아이디와 비밀번호를 입력해주세요."
+            });
+        }
 
-        const [readResult] = await conn.query(sql_read_userdata , [ account, password ] );
+        const sql_read_userdata = `SELECT * FROM tbl_user WHERE id = ?`;
+
+        const [readResult] = await conn.query(sql_read_userdata, [
+            account   ]);
         console.log(readResult);
 
-        if (readResult.length > 0) {
-            console.log( " 성공적으로 로그인되었습니다. " );
-            
-            return res.status(200).json({
-                success: true,
-                message: "성공적으로 로그인되었습니다.",
-                user: {
-                    user_idx: readResult[0].user_idx,      // ERD 기준 PK
-                    account: readResult[0].id,             // ERD 기준 id
-                    name: readResult[0].name,              // ERD 기준 name
-                    email: readResult[0].email,            // ERD 기준 email
-                    phone: readResult[0].phone             // ERD 기준 phone
-                }
-            });
-        } else {
-            console.log( " 로그인을 실패하였습니다. 아이디나 비밀번호를 확인하세요. " );
+        if (readResult.length === 0) {
+            console.log("로그인을 실패하였습니다. 아이디나 비밀번호를 확인하세요.");
             return res.status(401).json({
                 success: false,
                 message: "아이디 또는 비밀번호가 일치하지 않습니다."
             });
         }
-    }
-    catch(err) {
+
+
+
+        const isValid = await argon2.verify(readResult[0].password_hash, password);
+        if (!isValid) {
+            console.log("로그인을 실패하였습니다. 아이디나 비밀번호를 확인하세요.");
+            return res.status(401).json({
+                success: false,
+                message: "아이디 또는 비밀번호가 일치하지 않습니다."
+            });
+        }
+
+        const loginUser = readResult[0];
+        const token = jwt.sign(
+            {
+                user_idx: loginUser.user_idx,
+                account: loginUser.id,
+                name: loginUser.name
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: process.env.JWT_EXPIRES_IN || "2h"
+            }
+        );
+
+        console.log("성공적으로 로그인되었습니다.");
+        return res.status(200).json({
+            success: true,
+            message: "성공적으로 로그인되었습니다.",
+            token: token,
+            user: {
+                user_idx: loginUser.user_idx,
+                account: loginUser.id,
+                name: loginUser.name,
+                email: loginUser.email,
+                phone: loginUser.phone
+            }
+        });
+    } catch (err) {
         console.error("🚨 로그인 중 DB 에러 발생:", err);
         return res.status(500).json({
             success: false,
@@ -104,35 +139,56 @@ router.post("/read", async ( req, res )=>{
 
 
 // =======================================================
-// 3. Update - 수정하기 = 회원정보 수정 (ERD 반영 🛠️)
+// 3. Update - 수정하기 = 회원정보 수정
+// JWT 방식 + Argon2id 비밀번호 해시 적용
 // =======================================================
-router.post("/update", async ( req, res )=>{
-    try{
-        const { account, password, email, phoneNumber } = req.body;
-        
-        // 💡 [교정] ERD 컬럼명 반영 (password_hash, email, phone)
-        const sql_update_userdata = `UPDATE ${table_name} SET password_hash=?, email=?, phone=? WHERE id = ? `; 
+router.post("/update", authRequired, async (req, res) => {
+    try {
+        // JWT 토큰 검증은 authRequired가 먼저 수행함
+        // 검증 성공 시 req.user에 토큰 내용이 들어 있음
+        const userIdx = req.user.user_idx;
 
-        // SQL 바인딩 순서 매칭: password_hash(password) ➡️ email ➡️ phone(phoneNumber) ➡️ id(account)
-        const [ updateResult ] = await conn.query(sql_update_userdata , [ password, email, phoneNumber, account ] );
-        console.log(updateResult);
-        
+        const { password, email, phoneNumber } = req.body;
+
+        if (!password || !email || !phoneNumber) {
+            return res.status(400).json({
+                success: false,
+                message: "password, email, phoneNumber를 모두 입력해주세요."
+            });
+        }
+
+        const passwordHash = await argon2.hash(password, {
+            type: argon2.argon2id
+        });
+
+        const sql_update_userdata = `
+            UPDATE tbl_user
+            SET password_hash = ?, email = ?, phone = ?
+            WHERE user_idx = ?
+        `;
+
+        const [updateResult] = await conn.query(sql_update_userdata, [
+            passwordHash,
+            email,
+            phoneNumber,
+            userIdx
+        ]);
+
         if (updateResult.affectedRows === 1) {
-            console.log( " 성공적으로 정보가 수정되었습니다. " );
             return res.status(200).json({
                 success: true,
                 message: "성공적으로 정보가 수정되었습니다."
             });
-        } else {
-            console.log( " 정보수정을 실패하였습니다. (존재하지 않는 사용자) " );
-            return res.status(400).json({
-                success: false,
-                message: "회원 정보 수정에 실패했습니다."
-            });
         }
-    }
-    catch(err){
-        console.error("🚨 회원정보 수정 중 DB 에러 발생:", err); 
+
+        return res.status(404).json({
+            success: false,
+            message: "회원 정보를 찾을 수 없습니다."
+        });
+
+    } catch (err) {
+        console.error("🚨 회원정보 수정 중 DB 에러 발생:", err);
+
         return res.status(500).json({
             success: false,
             message: "정보 수정 중 서버 오류가 발생했습니다."
@@ -142,43 +198,30 @@ router.post("/update", async ( req, res )=>{
 
 
 // =======================================================
-// 4. Delete - 삭제하기 = 회원탈퇴 (ERD 반영 🛠️)
+// 4. Delete - 삭제하기 = 회원탈퇴
 // =======================================================
-router.post("/delete", async (req, res) => {
+router.post("/delete", authRequired, async (req, res) => {
     try {
-        const { account } = req.body;
-
-        if (!account) {
-            return res.status(400).json({
-                success: false,
-                message: "탈퇴할 계정 ID가 필요합니다."
-            });
-        }
+        const userIdx = req.user.user_idx;
 
         const sql_delete_userdata = `
             DELETE FROM tbl_user
-            WHERE id = ?
+            WHERE user_idx = ?
         `;
 
-        const [deleteResult] = await conn.query(sql_delete_userdata, [account]);
-
-        console.log(deleteResult);
+        const [deleteResult] = await conn.query(sql_delete_userdata, [userIdx]);
 
         if (deleteResult.affectedRows === 1) {
-            console.log("성공적으로 탈퇴 되었습니다.");
-
             return res.status(200).json({
                 success: true,
                 message: "성공적으로 탈퇴되었습니다."
             });
-        } else {
-            console.log("탈퇴 요청 실패: 존재하지 않는 사용자");
-
-            return res.status(404).json({
-                success: false,
-                message: "존재하지 않는 사용자입니다."
-            });
         }
+
+        return res.status(404).json({
+            success: false,
+            message: "존재하지 않는 사용자입니다."
+        });
 
     } catch (err) {
         console.error("🚨 회원탈퇴 중 DB 에러 발생:", err);
@@ -189,6 +232,7 @@ router.post("/delete", async (req, res) => {
         });
     }
 });
+
 
 // =======================================================
 // 5. 아이디 중복 확인
@@ -229,6 +273,7 @@ router.post("/check", async (req, res) => {
         });
     }
 });
+
 
 
 
