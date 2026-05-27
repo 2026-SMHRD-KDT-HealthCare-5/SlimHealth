@@ -192,7 +192,7 @@ const DataInputHistory = () => {
           </OutlinedButton>
         )}
         <Text textStyle={"bold"}>{page}</Text>
-        {maxPage >= 2 && (
+        {maxPage > page && (
           <OutlinedButton
             onClick={() => {
               setPage(page + 1);
