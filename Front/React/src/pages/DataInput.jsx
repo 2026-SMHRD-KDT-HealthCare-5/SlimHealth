@@ -6,6 +6,7 @@ import { Button } from "../components/Button/Button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   getHealthDataApi,
+  getRecentData,
   ocrInputApi,
   saveHealthDataApi,
 } from "../api/healthDataApi";
@@ -113,11 +114,12 @@ const DataInput = () => {
         "데이터 저장 성공", //title
         "데이터가 저장되었습니다. 해당 데이터로 바로 예측하시겠습니까?", //content
         true, //isCancelButton
-        () => {
+        async () => {
           if (id) {
             nav(`${predictionPath}?id=${id}`);
           } else {
-            nav(predictionPath);
+            const recentData = await getRecentData();
+            nav(`${predictionPath}?id=${recentData.id}`);
           }
           closeDialog();
         }, //onConfirmClick
