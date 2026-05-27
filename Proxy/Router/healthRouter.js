@@ -46,21 +46,17 @@ const multer = require("multer");
 const path = require("path");
 
 const pythonFastAPI = require("../config/pythonFastAPI");
-
-
 const healthAdviceModulePromise = import("../Api/healthAdvice.mjs");
 
 
 
 // 로그인 유저 체크
 function getLoginUserIdx(req) {
-    const userIdx = req.headers["x-user-id"];
-
-    if (!userIdx) {
+    if (!req.user || !req.user.user_idx) {
         return null;
     }
 
-    return Number(userIdx);
+    return Number(req.user.user_idx);
 }
 
 
@@ -265,9 +261,6 @@ router.post("/list", async (req, res) =>{
         // if (!userIdx) return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
         const userIdx = getLoginUserIdx(req);
 
-        if (!userIdx) {
-    return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
-}
         
         const readListSQL = `
             SELECT
@@ -702,45 +695,14 @@ router.get("/advice/:physical_idx", async (req, res) => {
                 hdl:   row.hdl,
             };
         }
-const { getHealthAdvice } = await healthAdviceModulePromise;
-const ocrResult      = { age: p.age, weight: p.weight };
-const userInput      = { gender: p.gender === "M" ? 1 : 2, smoke: p.smoke, drink: p.drink };
-const currentMetrics = { waist: p.waist, sbp: p.sbp, dbp: p.dbp, bs: p.bs, tg: p.tg, hdl: p.hdl };
+        
+        const { getHealthAdvice } = await healthAdviceModulePromise;
+        const ocrResult      = { age: p.age, weight: p.weight };
+        const userInput      = { gender: p.gender === "M" ? 1 : 2, smoke: p.smoke, drink: p.drink };
+        const currentMetrics = { waist: p.waist, sbp: p.sbp, dbp: p.dbp, bs: p.bs, tg: p.tg, hdl: p.hdl };
 
-const advice = await getHealthAdvice(ocrResult, userInput, currentMetrics, allPredictions);
-return res.status(200).json(advice);
-
-// const advice = await getHealthAdvice(ocrResult, userInput, currentMetrics, allPredictions);
-// const score  = Math.max(10, 100 - advice.syndrome_count * 20);
-
-
-
-//         // advices 배열을 key 기반 messages 맵으로 변환
-//         const indicatorToKey = {
-//             "허리둘레": "waist",
-//             "수축기혈압": "sbp", "수축기 혈압": "sbp",
-//             "이완기혈압": "dbp", "이완기 혈압": "dbp",
-//             "공복혈당": "bs",
-//             "중성지방": "tg",
-//             "HDL 콜레스테롤": "hdl", "HDL콜레스테롤": "hdl",
-//         };
-//         const messages = {};
-//         (advice.advices || []).forEach(a => {
-//             const key = indicatorToKey[a.indicator];
-//             if (key) messages[key] = a.message;
-//         });
-
-//         return res.status(200).json({
-//             summary: {
-//                 title:       "건강 데이터 분석 결과",
-//                 score,
-//                 risk_level:  advice.risk_level,
-//                 description: advice.overall_summary,
-//             },
-//             improvement: advice.lifestyle_tips,
-//             analysis:    advice.total_advice,
-//             messages,
-//         });
+        const advice = await getHealthAdvice(ocrResult, userInput, currentMetrics, allPredictions);
+        return res.status(200).json(advice);
 
     } catch (err) {
         console.error("🚨 건강 조언 생성 중 에러:", err.message);
@@ -748,7 +710,7 @@ return res.status(200).json(advice);
     }
 });
 
-//   localhost:8000/api/health/advice/23
+
 
 module.exports = router;
 /*
