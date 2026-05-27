@@ -227,7 +227,7 @@ router.post("/create", async (req, res) =>{
                     ]);
                 }
         // 리액트 전송
-        return res.status(201).json(analysisData);
+        return res.status(201).json({...analysisData, phyid: result.insertId});
     }
     catch(err) {
         // 대충 에러메시지
