@@ -81,19 +81,7 @@ export const dataInputFields = [
   },
 ];
 
-export const inputFields = [
-  {
-    title: "키",
-    placeholder: "현재 키(cm) 입력",
-    key: "height",
-    unit: "cm",
-  },
-  {
-    title: "체중",
-    placeholder: "현재 체중(kg) 입력",
-    key: "weight",
-    unit: "kg",
-  },
+export const KPIInputFields = [
   {
     title: "허리둘레",
     placeholder: "현재 허리둘레(cm) 입력",
@@ -130,6 +118,22 @@ export const inputFields = [
     key: "tg",
     unit: "mg/dl",
   },
+];
+
+export const inputFields = [
+  {
+    title: "키",
+    placeholder: "현재 키(cm) 입력",
+    key: "height",
+    unit: "cm",
+  },
+  {
+    title: "체중",
+    placeholder: "현재 체중(kg) 입력",
+    key: "weight",
+    unit: "kg",
+  },
+  ...KPIInputFields,
 ];
 
 export const totalInputFields = [

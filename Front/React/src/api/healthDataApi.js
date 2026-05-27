@@ -20,6 +20,12 @@ export const getHealthDataApi = async (id) => {
   return result.data;
 };
 
+//건강 조언 생성 api
+export const getHealthAdviceApi = async (id) => {
+  const result = await client.get(`${healthBasePath}/advice/${id}`, {});
+  return result.data;
+};
+
 //ocr 데이터 입력 api
 export const ocrInputApi = async (files) => {
   const formData = new FormData();
@@ -248,26 +254,6 @@ export const getSummaryResultApi = (id) => {
       description:
         "대사증후군 위험군에 해당할 수 있습니다. 방치하면 당뇨병, 고혈압, 심혈관 질환의 위험이 3배 이상 증가합니다!",
     });
-  });
-};
-
-//개선사항 리스트 api
-export const getImprovementListApi = (id) => {
-  return new Promise((resolve) => {
-    resolve({
-      diet: "짠 음식과 가공식품 섭취를 줄이고, 채소와 통곡물 위주의 식단을 실천하세요. 규칙적인 식사와 과식 피하기가 중요합니다.",
-      exercise:
-        "매일 30분 이상 중등도 유산소 운동(걷기, 조깅 등)과 주 2회 근력 운동을 병행하세요. 꾸준함이 가장 중요합니다.",
-      habit:
-        "현재 흡연 중이시므로 금연은 가장 시급하고 중요한 과제입니다. 음주량도 줄이고 충분한 수면을 취하며 스트레스를 관리하세요.",
-    });
-  });
-};
-
-//분석내용 받기 api
-export const getAnalysisContentApi = (id) => {
-  return new Promise((resolve) => {
-    resolve("긴 분석내용입니다.");
   });
 };
 

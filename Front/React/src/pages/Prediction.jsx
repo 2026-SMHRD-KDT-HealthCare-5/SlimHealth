@@ -5,8 +5,8 @@ import { ResultBox } from "../components/ResultBox/ResultBox";
 import { ImprovementBox } from "../components/ImprovementBox/ImprovementBox";
 import { Slider } from "../components/Slider";
 import {
-  getAnalysisContentApi,
-  getImprovementListApi,
+  getHealthAdviceApi,
+  getHealthDataApi,
   getKPIPredictionApi,
   getSummaryResultApi,
 } from "../api/healthDataApi";
@@ -18,6 +18,7 @@ import {
   weightToSliderValue,
 } from "../utils/utils";
 import { useSearchParams } from "react-router-dom";
+import { convertKPIResultList } from "../features/predictionFeatures";
 
 const Prediction = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,7 +26,7 @@ const Prediction = () => {
   const id = searchParams.get("id");
 
   //슬라이더 부분
-  const [predictions, setPredictions] = useState({});
+  const [predictions, setPredictions] = useState([]);
 
   const [currentSliderImage, setCurrentSliderImage] = useState(
     sliderImageList[0],
@@ -79,31 +80,34 @@ const Prediction = () => {
         predictionValue:
           currentLossKg == 0
             ? item.current_value
-            : predictions[`${currentLossKg}kg`][item.key],
+            : predictions[predictions.length - currentLossKg][item.key],
       })),
     );
   };
 
-  //api 연결 부분 필요
   useEffect(() => {
     //5대지표 예측결과 및 슬라이더 초기값 설정
     const fetchKPIPrediction = async () => {
       try {
-        const data = await getKPIPredictionApi(id);
+        const [data, adviceData] = await Promise.all([
+          getHealthDataApi(id),
+          getHealthAdviceApi(id),
+        ]);
 
         const tempPredictions = data.predictions;
         setPredictions(tempPredictions);
 
-        const tempSliderMaxValue = parseInt(data.weight);
+        const tempSliderMaxValue = parseInt(data.physical.weight);
         setSliderMaxValue(tempSliderMaxValue);
-        const tempSliderMinValue = parseInt(data.weight) - data.max_loss_kg;
+        const tempSliderMinValue =
+          parseInt(data.physical.weight) - data.predictions.length;
         setSliderMinValue(tempSliderMinValue);
 
-        const tempWeight = parseInt(data.weight);
+        const tempWeight = parseInt(data.physical.weight);
         setWeight(tempWeight);
-        const tempBmi = data.current_bmi;
+        const tempBmi = 27.6;
         setBmi(tempBmi);
-        const tempMaxLossKg = data.max_loss_kg;
+        const tempMaxLossKg = data.predictions.length;
         setMaxLossKg(tempMaxLossKg);
 
         const sliderVal = weightToSliderValue(
@@ -124,11 +128,13 @@ const Prediction = () => {
         );
 
         //5대지표 예측결과 설정
-        setKpiResultList(
-          data.result.map((item) => {
-            return { ...item, predictionValue: item.current_value };
-          }),
-        );
+        setKpiResultList(convertKPIResultList(data, adviceData));
+
+        //개선사항 설정
+        setImprovementList(adviceData.improvement);
+
+        //긴 분석내용 설정
+        setAnalysisContent(adviceData.analysis);
       } catch (e) {
         console.log(e);
       }
@@ -144,33 +150,8 @@ const Prediction = () => {
       }
     };
 
-    //개선사항 설정
-    const fetchImprovementList = async () => {
-      try {
-        const data = await getImprovementListApi(id);
-        setImprovementList(data);
-      } catch (e) {
-        console.log(e);
-      }
-    };
-
-    //분석내용 설정
-    const fetchAnalysisContent = async () => {
-      try {
-        const data = await getAnalysisContentApi(id);
-        setAnalysisContent(data);
-      } catch (e) {
-        console.log(e);
-      }
-    };
-
     const fetchData = async () => {
-      await Promise.all([
-        fetchSummaryResult(),
-        fetchKPIPrediction(),
-        fetchImprovementList(),
-        fetchAnalysisContent(),
-      ]);
+      await Promise.all([fetchSummaryResult(), fetchKPIPrediction()]);
     };
     fetchData();
   }, [id]);
