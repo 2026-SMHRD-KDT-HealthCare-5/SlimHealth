@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Text } from "../components/Text/Text";
 import { SummaryBox } from "../components/SummaryBox/SummaryBox";
 import { ResultBox } from "../components/ResultBox/ResultBox";
@@ -15,8 +15,10 @@ import {
 } from "../utils/utils";
 import { useSearchParams } from "react-router-dom";
 import { convertKPIResultList } from "../features/predictionFeatures";
+import Context from "../context/context";
 
 const Prediction = () => {
+  const { isLoading, setIsLoading } = useContext(Context);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const id = searchParams.get("id");
@@ -84,6 +86,7 @@ const Prediction = () => {
   useEffect(() => {
     //5대지표 예측결과 및 슬라이더 초기값 설정
     const fetchKPIPrediction = async () => {
+      setIsLoading(true);
       try {
         const [data, adviceData] = await Promise.all([
           getHealthDataApi(id),
@@ -127,18 +130,12 @@ const Prediction = () => {
         setKpiResultList(convertKPIResultList(adviceData));
 
         //요약박스 설정
-        /**
-         * description={summary.description}
-                  grade={summary.risk_level}
-                  score={summary.score}
-                  title={summary.title}
-         */
         setSummary({
-          risk_level: "위험",
-          score: 72,
-          title: "건강 주의보! 지금 바로 확인하세요!",
-          description:
-            "대사증후군 위험군에 해당할 수 있습니다. 방치하면 당뇨병, 고혈압, 심혈관 질환의 위험이 3배 이상 증가합니다!",
+          grade: adviceData.risk_level,
+          overall_summary: adviceData.overall_summary,
+          syndrome_count: adviceData.syndrome_count,
+          recommended_loss_kg: adviceData.recommended_loss_kg,
+          recommended_reason: adviceData.recommended_reason,
         });
 
         //개선사항 설정
@@ -148,11 +145,13 @@ const Prediction = () => {
         setAnalysisContent(adviceData.total_advice);
       } catch (e) {
         console.log(e);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchKPIPrediction();
-  }, [id]);
+  }, [id, setIsLoading]);
 
   return (
     <div className="contentContainer">
@@ -184,10 +183,11 @@ const Prediction = () => {
             <div className="vertical-flex flex-align-center">
               {summary && (
                 <SummaryBox
-                  description={summary.description}
-                  grade={summary.risk_level}
-                  score={summary.score}
-                  title={summary.title}
+                  grade={summary.grade}
+                  overall_summary={summary.overall_summary}
+                  syndrome_count={summary.syndrome_count}
+                  recommended_loss_kg={summary.recommended_loss_kg}
+                  recommended_reason={summary.recommended_reason}
                 />
               )}
             </div>

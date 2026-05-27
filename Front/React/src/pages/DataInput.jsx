@@ -6,6 +6,7 @@ import { Button } from "../components/Button/Button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   getHealthDataApi,
+  getRecentData,
   ocrInputApi,
   saveHealthDataApi,
 } from "../api/healthDataApi";
@@ -24,8 +25,8 @@ const DataInput = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const id = searchParams.get("id");
-
-  const { openDialog, closeDialog } = useContext(Context);
+  const { openDialog, closeDialog, isLoading, setIsLoading } =
+    useContext(Context);
   const nav = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -76,6 +77,7 @@ const DataInput = () => {
   //ocr로 입력
   const handleOcrInput = async (files) => {
     //ocr 입력 api 연결
+    setIsLoading(true);
     try {
       const data = (await ocrInputApi(files)).ocr;
 
@@ -91,6 +93,8 @@ const DataInput = () => {
       });
     } catch (e) {
       console.log(e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -101,7 +105,7 @@ const DataInput = () => {
   //데이터 저장 버튼
   const handleSaveData = async () => {
     try {
-      await saveHealthDataApi({
+      const result = await saveHealthDataApi({
         ...formData,
         checkupDate,
         isDrink: isDrink ? 1 : 0,
@@ -113,11 +117,11 @@ const DataInput = () => {
         "데이터 저장 성공", //title
         "데이터가 저장되었습니다. 해당 데이터로 바로 예측하시겠습니까?", //content
         true, //isCancelButton
-        () => {
+        async () => {
           if (id) {
             nav(`${predictionPath}?id=${id}`);
           } else {
-            nav(predictionPath);
+            nav(`${predictionPath}?id=${result.phyid}`);
           }
           closeDialog();
         }, //onConfirmClick

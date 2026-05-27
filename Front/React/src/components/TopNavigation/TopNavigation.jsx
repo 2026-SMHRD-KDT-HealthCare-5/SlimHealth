@@ -13,10 +13,12 @@ import {
   loginPath,
   predictionPath,
 } from "../../App";
+import { getRecentData } from "../../api/healthDataApi";
 
 export const TopNavigation = ({ isBackButton, menuList }) => {
   const nav = useNavigate();
-  const { setUserInfo, processLogout } = useContext(Context);
+  const { setUserInfo, processLogout, openDialog, closeDialog } =
+    useContext(Context);
 
   const navMenuList = [
     {
@@ -63,8 +65,18 @@ export const TopNavigation = ({ isBackButton, menuList }) => {
       key: "prediction",
       title: "데이터 예측",
       path: predictionPath,
-      onClick: () => {
-        nav(predictionPath);
+      onClick: async () => {
+        const recentData = await getRecentData();
+        if (!recentData) {
+          openDialog(
+            "예측 불가", //title
+            "데이터 저장기록이 없습니다. 먼저 건강 데이터 입력을 진행해주세요.", //content
+            false, //isCancelButton
+            closeDialog,
+          );
+        } else {
+          nav(`${predictionPath}?id=${recentData.id}`);
+        }
       },
     },
     {

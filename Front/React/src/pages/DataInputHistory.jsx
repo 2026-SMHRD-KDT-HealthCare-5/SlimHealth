@@ -13,6 +13,8 @@ import Context from "../context/context";
 import { useNavigate } from "react-router-dom";
 import { dataInputPath, dataUpdatePath, predictionPath } from "../App";
 
+const rowCount = 10;
+
 const modifyKey = "modify";
 const deleteKey = "delete";
 const predictionKey = "prediction";
@@ -49,20 +51,33 @@ const DataInputHistory = () => {
   const nav = useNavigate();
 
   const [page, setPage] = useState(1);
+  const [maxPage, setMaxPage] = useState(1);
+  const [allDataHistoryList, setAllDataHistoryList] = useState([]);
   const [dataHistoryList, setDataHistoryList] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        //내역 연동
-        const data = await getHealthDataHistories(page);
-        setDataHistoryList(data);
+        const data = await getHealthDataHistories(1);
+        setMaxPage(Math.ceil(data.length / rowCount));
+        setAllDataHistoryList(data);
       } catch (e) {
         console.log(e);
       }
     };
+
     fetchData();
-  }, [page]);
+  }, []);
+
+  useEffect(() => {
+    const setData = () => {
+      const startIndex = (page - 1) * rowCount;
+      const endIndex = startIndex + rowCount;
+
+      setDataHistoryList(allDataHistoryList.slice(startIndex, endIndex));
+    };
+    setData();
+  }, [page, allDataHistoryList]);
 
   //버튼 기능
   const handleButtonClick = (id, key) => {
@@ -177,13 +192,15 @@ const DataInputHistory = () => {
           </OutlinedButton>
         )}
         <Text textStyle={"bold"}>{page}</Text>
-        <OutlinedButton
-          onClick={() => {
-            setPage(page + 1);
-          }}
-        >
-          다음
-        </OutlinedButton>
+        {maxPage >= 2 && (
+          <OutlinedButton
+            onClick={() => {
+              setPage(page + 1);
+            }}
+          >
+            다음
+          </OutlinedButton>
+        )}
       </div>
     </div>
   );

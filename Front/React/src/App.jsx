@@ -11,6 +11,7 @@ import Prediction from "./pages/Prediction";
 import MainLayout from "./pages/layout/MainLayout";
 import CommonLayout from "./pages/layout/CommonLayout";
 import DataInputHistory from "./pages/DataInputHistory";
+import { LoadingBox } from "./components/LoadingBox/LoadingBox";
 
 export const loginPath = "/login";
 export const joinPath = "/join";
@@ -20,7 +21,7 @@ export const predictionPath = "/prediction";
 export const dataInputHistoryPath = "/dataInputHistory";
 
 const AppContent = () => {
-  const { isDialogOpen, dialogInfo } = useContext(Context);
+  const { isDialogOpen, dialogInfo, isLoading } = useContext(Context);
 
   return (
     <div>
@@ -54,6 +55,7 @@ const AppContent = () => {
           title={dialogInfo.title}
         />
       )}
+      {isLoading && <LoadingBox />}
     </div>
   );
 };

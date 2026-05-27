@@ -46,6 +46,13 @@ export const getHealthDataHistories = async (page) => {
   return result.data;
 };
 
+//최신 데이터 가져오기 api
+export const getRecentData = async () => {
+  const data = await getHealthDataHistories(1);
+  return data[0];
+};
+
+//건강 데이터 삭제
 export const deleteDataHistory = async (id) => {
   const result = await client.delete(`${healthBasePath}/delete/${id}`, {});
   return result.data;
