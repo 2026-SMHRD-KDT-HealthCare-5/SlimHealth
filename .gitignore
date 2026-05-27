@@ -4,3 +4,5 @@
 node_modules/
 Proxy/node_modules/
 Proxy/uploads/.claude/
+Proxy/uploads/
+*.png

@@ -666,7 +666,7 @@ router.get("/advice/:physical_idx", async (req, res) => {
         // tbl_physical + tbl_user JOIN
         const [physRows] = await conn.query(`
             SELECT p.*, u.gender, u.birth_date,
-                   YEAR(NOW()) - YEAR(u.birth_date) AS age
+                   YEAR(p.checkup_date) - YEAR(u.birth_date) AS age
             FROM tbl_physical p
             JOIN tbl_user u ON p.user_idx = u.user_idx
             WHERE p.physical_idx = ?
