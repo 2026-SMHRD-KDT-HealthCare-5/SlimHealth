@@ -76,7 +76,7 @@ total_advice는 string 타입이 아닌 반드시 string[] 배열 타입으로 �
 다음 JSON 형식으로만 응답해주세요. 다른 텍스트 없이 순수 JSON만 반환하세요:
 {
   "overall_summary": "현재 건강 상태 한 줄 요약 (30자 이내)",
-  "risk_level": "정상 또는 주의 또는 위험 중 하나만",
+  "risk_level": "대사증후군 위험 항목 수(syndrome_count) 기준으로 판정: 0개=정상, 1~2개=주의, 3개 이상=위험. 반드시 정상/주의/위험 중 하나만 반환",
   "syndrome_count": ${syndromeCount},
   "recommended_loss_kg": 감량량별 예측 수치를 분석해서 대사증후군 기준 항목들이 정상 범위로 들어오는 최소 감량량 숫자만 반환 (단위 없이 숫자만),
   "recommended_reason": "해당 감량량 추천 이유 (어떤 지표가 정상으로 개선되는지 30자 이내로 설명)",
