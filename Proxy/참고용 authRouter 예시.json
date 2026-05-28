@@ -1,0 +1,71 @@
+
+기존 로그인 주소가
+/api/user/read 에서
+/api/auth/login   (POST) 로 변경되었습니다.
+
+인풋은 이전처럼
+{	"account": "test01",
+	"password": "1234"	}
+
+아웃풋은 이러할것입니다.
+{
+  "success": true,
+  "message": "성공적으로 로그인되었습니다.",
+  "accessToken": "액세스 토큰 값",
+  "refreshToken": "리프레시 토큰 값",
+  "user": {
+    "user_idx": 1,
+    "account": "test01",
+    "name": "홍길동",
+    "email": "test@test.com",
+    "phone": "01012345678"
+  }
+}
+
+====================================
+리프레시 토큰을 이용한 엑세스토큰 재발급은
+ /api/auth/refresh   (POST) 입니다.
+
+인풋이 이러하다면
+{	"refreshToken": "로그인 때 받은 리프레시 토큰 값"	}
+
+아웃풋은 이러할것입니다.
+{	"success": true,
+  	"message": "액세스 토큰이 재발급되었습니다.",
+  	"accessToken": "새 액세스 토큰 값"		}
+
+리프레시가 안되면 다시 로그인하여 토큰 두개를 새로 받아주세요
+
+=========================
+로그아웃
+/api/auth/logout     ( POST )
+
+주소를 통해 토큰을 삭제해주세요
+
+인풋은 따로 필요 없습니다.
+아웃풋은 이러할것입니다.
+{	"success": true,
+  	"message": "로그아웃되었습니다. "  }
+
+
+======================
+.ENV를 수정해주세요
+JWT 네줄이 필요합니다. 덮어써주세요.
+유효기간은 [ 엑세스는 15분, 리프레시는 14일 ] 입니다.
+
+GEMINI_API_KEY_1=~~~~~~~~~~~~~
+
+JWT_SECRET=access_token_secret
+JWT_REFRESH_SECRET=refresh_token_secret
+
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=14d
+
+
+
+
+
+
+
+
+
