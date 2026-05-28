@@ -13,8 +13,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-models  = joblib.load("health_models_v4.pkl")
-results = joblib.load("health_model_scores_v4.pkl")
+models  = joblib.load("health_models_v6.pkl")
+results = joblib.load("health_model_scores_v6.pkl")
 
 class UserInput(BaseModel):
     gender: int

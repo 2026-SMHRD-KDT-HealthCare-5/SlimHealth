@@ -1,0 +1,822 @@
+=== CELL 0 (markdown) ===
+# 대사증후군 AI - 시계열 더미데이터 생성
+
+## 프로젝트 개요
+국민건강보험공단 13년치(2012~2024) 건강검진 데이터 기반
+체중 감량 시 대사증후군 5대 지표 변화 예측 모델
+
+## 구성
+- STEP 0: 원시데이터 로드
+- STEP 1: 전처리 (smoke/drink 이진화 + 이상치 제거)
+- STEP 2: 의학 계수 테이블 정의
+- STEP 3: 시계열 더미데이터 생성 (82만명 × 10단계 = 820만 행)
+- STEP 4: 더미데이터 검증
+- STEP 5: 피처 정의 및 학습/검증 분리
+- STEP 6: XGBoost 학습
+- STEP 7: 모델 저장
+- STEP 8: 시뮬레이터 함수 정의
+- STEP 9: 시뮬레이터 테스트
+- STEP 10: 원시데이터 교차검증
+
+## 컬럼 정의
+- smoke: 0=비흡연/금연, 1=현재흡연
+- drink: 0=비음주, 1=음주
+- gender: 1=남, 2=여
+- age_code: 7=30대초 ~ 12=50대후
+
+
+=== CELL 1 (code) ===
+# STEP 0. 원시데이터 로드
+
+import pandas as pd   # 표(데이터프레임) 처리 전문 라이브러리. 엑셀처럼 행/열로 데이터 다룸
+import numpy as np    # 수치 계산 전문 라이브러리. 배열 연산, 수학 계산에 사용
+import os             # 파일 경로 조합 등 운영체제 기능
+import gc             # 메모리 강제 정리 도구. 큰 변수 삭제 후 RAM 확보할 때 사용
+
+path = r'C:\Users\smhrd1\Desktop\학습모델'
+
+file_names = [f"국민건강보험공단_건강검진정보_{year}.CSV" for year in range(2012, 2025)]
+
+raw_to_standard = {
+    '성별코드': 'gender', '성별': 'gender',
+    '연령대코드(5세단위)': 'age_code',
+    '신장(5cm단위)': 'height', '신장(5Cm단위)': 'height',
+    '체중(5kg단위)': 'weight', '체중(5Kg단위)': 'weight',
+    '허리둘레': 'waist',
+    '수축기혈압': 'sbp',       # Systolic Blood Pressure
+    '이완기혈압': 'dbp',       # Diastolic Blood Pressure
+    '식전혈당(공복혈당)': 'bs', # Blood Sugar
+    '트리글리세라이드': 'tg',   # Triglyceride (중성지방)
+    'HDL콜레스테롤': 'hdl',
+    '흡연상태': 'smoke',
+    '음주여부': 'drink',
+}
+
+all_dfs = []  # 13개 파일을 담아둘 빈 리스트
+
+for f_name in file_names:
+    full_path = os.path.join(path, f_name)
+    try:
+        df = pd.read_csv(full_path, encoding='cp949', low_memory=False)
+
+        df.columns = df.columns.str.replace(' ', '').str.lower()
+
+        lower_map = {k.lower(): v for k, v in raw_to_standard.items()}
+
+        existing_cols = [c for c in df.columns if c in lower_map]
+        df_f = df[existing_cols].rename(columns=lower_map)
+
+        del df; gc.collect()
+
+        for col in ['smoke', 'drink', 'age_code', 'height', 'weight']:
+            if col not in df_f.columns:
+                df_f[col] = pd.NA
+
+        df_f = df_f[(df_f['age_code'] >= 7) & (df_f['age_code'] <= 12)]
+
+        df_f = df_f[df_f['height'] >= 140]
+
+        df_f['bmi'] = (df_f['weight'] / ((df_f['height'] / 100) ** 2))
+
+        df_f['year'] = f_name.split('_')[-1].split('.')[0]
+
+        all_dfs.append(df_f)  # 리스트에 추가
+        print(f"✅ {f_name}: {len(df_f):,}행")
+
+    except Exception as e:
+        print(f"❌ {f_name}: {e}")
+
+raw_df = pd.concat(all_dfs, ignore_index=True)
+
+del all_dfs; gc.collect()
+print(f"\n🗂  통합 완료: {len(raw_df):,}행")
+
+
+=== CELL 2 (code) ===
+# STEP 1. smoke/drink 전처리 + 이상치 제거
+
+def normalize_smoke(val):
+    if pd.isna(val):    # 값이 비어있으면(NaN) 비흡연으로 처리
+        return 0
+    s = str(val).strip().upper()  # 문자열로 변환, 앞뒤 공백 제거, 대문자 통일
+    if s in ('Y', 'YES'):
+        return 1  # Y = 현재흡연 (일부 연도 표기)
+    if s in ('N', 'NO'):
+        return 0  # N = 비흡연
+    try:
+        v = int(float(s))
+        if v == 3:
+            return 1  # 3 = 현재흡연 → 1
+        return 0      # 1=비흡연, 2=금연 → 0 (금연도 패널티 없음)
+    except:
+        pass
+    return 0  # 그 외 모든 경우 → 비흡연으로 처리
+
+def normalize_drink(val):
+    if pd.isna(val):
+        return 0  # 결측 → 비음주
+    s = str(val).strip().upper()
+    if s in ('Y', 'YES', '1'):
+        return 1  # 음주
+    if s in ('N', 'NO', '0'):
+        return 0  # 비음주
+    try:
+        v = int(float(s))
+        return 1 if v >= 1 else 0
+    except:
+        pass
+    return 0
+
+raw_df['smoke'] = raw_df['smoke'].apply(normalize_smoke).astype('int8')
+raw_df['drink'] = raw_df['drink'].apply(normalize_drink).astype('int8')
+
+essential = ['bs','sbp','dbp','tg','hdl','waist','bmi','weight']
+raw_df.dropna(subset=essential, inplace=True)
+
+raw_df = raw_df[
+    (raw_df['sbp']    >  70) & (raw_df['sbp']    < 250) &
+    (raw_df['dbp']    >  40) & (raw_df['dbp']    < 150) &
+    (raw_df['bs']     >  50) & (raw_df['bs']     < 400) &
+    (raw_df['waist']  >  40) & (raw_df['waist']  < 150) &
+    (raw_df['tg']     >   5) & (raw_df['tg']     < 500) &
+    (raw_df['hdl']    >   5) & (raw_df['hdl']    < 200) &
+    (raw_df['bmi']    >  10) & (raw_df['bmi']    <  60) &
+    (raw_df['weight'] >  30) & (raw_df['weight'] < 160)
+]
+
+print(f'✅ 이상치 제거 후 원시데이터: {len(raw_df):,}행')
+print(f'\nsmoke 분포:')
+print(raw_df['smoke'].value_counts().sort_index().rename({0:'비흡연/금연',1:'현재흡연'}))
+print(f'\ndrink 분포:')
+print(raw_df['drink'].value_counts().sort_index().rename({0:'비음주',1:'음주'}))
+
+
+=== CELL 3 (code) ===
+# STEP 2. 의학 계수 테이블 정의
+
+COEF = {
+    # noise_std: 신호 대비 55~65% 수준 → 목표 R² 0.70~0.73
+    (1, False): dict(
+        sbp     =(1.05, 2.5),  # 수축기혈압: 1kg당 1.05mmHg 감소 / 개인차 std=2.5
+        dbp     =(0.72, 1.8),  # 이완기혈압: 1kg당 0.72mmHg 감소 / 개인차 std=1.8
+        waist   =(0.88, 2.5),  # 허리둘레:   1kg당 0.88cm 감소   / 개인차 std=2.5
+        bs      =(0.68, 1.9),  # 공복혈당:   1kg당 0.68mg/dL 감소 / 개인차 std=1.9
+        hdl     =(0.19, 0.55), # HDL:        1kg당 0.19mg/dL 상승 / 개인차 std=0.55
+        tg_rate =(1.15, 0.05)  # 중성지방:   비율 방식 계수 / 개인차 std=0.05
+    ),
+    (1, True): dict(
+        sbp     =(1.15, 2.8),
+        dbp     =(0.80, 2.0),
+        waist   =(0.95, 2.8),
+        bs      =(0.88, 2.2),
+        hdl     =(0.22, 0.60),
+        tg_rate =(1.32, 0.06)
+    ),
+    (2, False): dict(
+        sbp     =(0.95, 2.2),
+        dbp     =(0.65, 1.6),
+        waist   =(0.82, 2.2),
+        bs      =(0.58, 1.7),
+        hdl     =(0.21, 0.50),
+        tg_rate =(1.08, 0.04)
+    ),
+    (2, True): dict(
+        sbp     =(1.05, 2.5),
+        dbp     =(0.73, 1.8),
+        waist   =(0.92, 2.5),
+        bs      =(0.78, 2.0),
+        hdl     =(0.26, 0.55),
+        tg_rate =(1.22, 0.05)
+    ),
+}
+
+SMOKE_PENALTY = dict(
+    sbp=0.25,    # 수축기혈압 개선 25% 감소 (대한고혈압학회 근거)
+    dbp=0.25,    # 이완기혈압 개선 25% 감소
+    waist=0.15,  # 허리둘레 개선 15% 감소
+    bs=0.25      # 공복혈당 개선 25% 감소 (대한당뇨병학회 근거)
+)
+
+DRINK_PENALTY = dict(
+    tg_rate=0.30,  # 중성지방 개선 30% 감소
+    hdl=0.20       # HDL 상승 20% 감소
+)
+
+print('✅ 의학 계수 테이블 정의 완료')
+
+
+=== CELL 4 (code) ===
+# STEP 3. 시계열 더미데이터 생성 함수 (BMI 구간별 최대 감량 차등 적용)
+
+def get_max_loss_kg(bmi):
+    """
+    BMI 구간별 현실적인 최대 감량 설정 (9단계 세분화)
+    경계값에서 급격한 변화 방지 → 슬라이더 UX 부드럽게
+    """
+    if bmi < 22:   return 8    # 저체중/정상 하단
+    elif bmi < 25: return 10   # 정상체중
+    elif bmi < 27: return 12   # 과체중 초입
+    elif bmi < 30: return 15   # 과체중
+    elif bmi < 32: return 20   # 비만1 초입
+    elif bmi < 35: return 25   # 비만1
+    elif bmi < 38: return 30   # 비만2 초입
+    elif bmi < 40: return 35   # 비만2
+    else:          return 50   # 고도비만
+
+def generate_timeseries_dummy(raw_df, n_persons=820_000, random_state=42):
+    """
+    BMI 구간별 최대 감량을 다르게 적용한 시계열 더미 생성
+    개인별 BMI로 max_loss 계산 후 그룹 최빈값 적용
+    """
+    rng    = np.random.default_rng(random_state)
+    raw_df = raw_df.reset_index(drop=True)
+
+    groups      = [(g,a,o) for g in [1,2]
+                            for a in [7,8,9,10,11,12]
+                            for o in [False,True]]
+    n_per_group = n_persons // len(groups)
+    print(f"📊 그룹: {len(groups)}개 / 그룹당: {n_per_group:,}명 / 총: {n_per_group*len(groups):,}명")
+
+    all_chunks        = []
+    person_id_counter = 0
+
+    for gender, age_code, is_obese in groups:
+        bmi_cond = (raw_df['bmi'] >= 25) if is_obese else (raw_df['bmi'] < 25)
+        pool = raw_df[(raw_df['gender']==gender)&
+                      (raw_df['age_code']==age_code)&bmi_cond]
+        if len(pool) < 30: pool = raw_df[(raw_df['gender']==gender)&bmi_cond]
+        if len(pool) < 30: pool = raw_df[raw_df['gender']==gender]
+        if len(pool) < 30: pool = raw_df
+
+        n    = n_per_group
+        base = pool.sample(n=n, replace=(len(pool)<n),
+                           random_state=int(rng.integers(0,99999))
+                          ).reset_index(drop=True)
+
+        g_arr     = base['gender'].values.astype(np.int8)
+        a_arr     = base['age_code'].values.astype(np.int8)
+        h_arr     = base['height'].values.astype(np.float32)
+        smoke_arr = base['smoke'].values.astype(np.float32)
+        drink_arr = base['drink'].values.astype(np.float32)
+        w0        = base['weight'].values.astype(np.float32)
+        waist0    = base['waist'].values.astype(np.float32)
+        sbp0      = base['sbp'].values.astype(np.float32)
+        dbp0      = base['dbp'].values.astype(np.float32)
+        bs0       = base['bs'].values.astype(np.float32)
+        tg0       = base['tg'].values.astype(np.float32)
+        hdl0      = base['hdl'].values.astype(np.float32)
+
+        # [문제1,2 수정] 개인별 BMI 계산 후 최빈값으로 max_loss 결정
+        # 기존: 그룹 평균 BMI 1개로 결정 → 대표성 부족
+        # 수정: 개인별 BMI → 개인별 max_loss → 그룹 최빈값
+        if 'bmi' in base.columns:
+            bmi_arr = base['bmi'].values.astype(np.float32)
+        else:
+            # bmi 컬럼 없을 때 개인별로 정확하게 계산
+            bmi_arr = w0 / ((h_arr / 100) ** 2)
+
+        max_losses  = np.array([get_max_loss_kg(float(b)) for b in bmi_arr], dtype=np.int16)
+        max_loss_kg = max_losses.max()  # 그룹 내 최대 감량치
+
+        is_cur_smoker = (smoke_arr == 1).astype(np.float32)
+        is_dri
+
+=== CELL 5 (code) ===
+# STEP 4. 더미데이터 검증
+
+print('=== [검증1] 단계별 평균 Δ (단조증가 확인) ===')
+verify = df_dummy.groupby('step')[
+    ['delta_waist','delta_sbp','delta_dbp','delta_bs','delta_tg','delta_hdl']
+].mean().round(2)
+print(verify)
+
+print('\n=== [검증2] 흡연 여부별 Δsbp (step=5 기준) ===')
+smoke_chk = df_dummy[df_dummy['step']==5].groupby('smoke')['delta_sbp'].mean().round(2)
+print(smoke_chk.rename({0:'비흡연/금연',1:'현재흡연'}))
+print('  → 현재흡연(1) 개선폭이 비흡연/금연(0)보다 작아야 정상 ✅')
+
+print('\n=== [검증3] 음주 여부별 Δtg (step=5 기준) ===')
+drink_chk = df_dummy[df_dummy['step']==5].groupby('drink')['delta_tg'].mean().round(2)
+print(drink_chk.rename({0:'비음주',1:'음주'}))
+print('  → 음주(1)가 비음주(0)보다 개선폭 작아야 정상 ✅')
+
+print('\n=== [검증4] smoke 고유값 확인 (0/1만 있어야 정상) ===')
+print(df_dummy['smoke'].value_counts().sort_index()
+      .rename({0:'비흡연/금연',1:'현재흡연'}))
+print('\n=== [검증5] drink 고유값 확인 (0/1만 있어야 정상) ===')
+print(df_dummy['drink'].value_counts().sort_index()
+      .rename({0:'비음주',1:'음주'}))
+
+
+=== CELL 6 (code) ===
+# STEP 5. 피처(입력값) 정의 및 학습/검증 데이터 분리
+
+from sklearn.model_selection import train_test_split  # 데이터를 학습/검증 세트로 나눔
+from xgboost import XGBRegressor                       # XGBoost 회귀 모델
+from sklearn.metrics import mean_absolute_error, r2_score  # 모델 성능 평가 지표
+
+X_features = [
+    'gender',      # 성별 (1=남, 2=여)
+    'age_code',    # 연령대 (7=30대초반 ~ 12=50대후반)
+    'height',      # 키 (cm)
+    'smoke',       # 흡연 (0=비흡연/금연, 1=현재흡연)
+    'drink',       # 음주 (0=비음주, 1=음주)
+    'weight_pre',  # 현재 체중 (kg)
+    'weight_diff', # 감량 목표량 = 현재체중 - 목표체중 (kg)
+    'waist_pre',   # 현재 허리둘레 (cm)
+    'sbp_pre',     # 현재 수축기혈압 (mmHg)
+    'dbp_pre',     # 현재 이완기혈압 (mmHg)
+    'bs_pre',      # 현재 공복혈당 (mg/dL)
+    'tg_pre',      # 현재 중성지방 (mg/dL)
+    'hdl_pre',     # 현재 HDL 콜레스테롤 (mg/dL)
+]
+
+target_cols = [
+    'delta_waist',  # 허리둘레 변화량
+    'delta_sbp',    # 수축기혈압 변화량
+    'delta_dbp',    # 이완기혈압 변화량
+    'delta_bs',     # 공복혈당 변화량
+    'delta_tg',     # 중성지방 변화량
+    'delta_hdl',    # HDL 변화량
+]
+
+for col in X_features + target_cols:
+    df_dummy[col] = pd.to_numeric(df_dummy[col], errors='coerce').fillna(0).astype('float32')
+
+X = df_dummy[X_features]
+y = df_dummy[target_cols]
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+print(f'📦 학습: {len(X_train):,}행 / 검증: {len(X_val):,}행')
+print(f'   피잘 {len(X_features)}개: 개인특성 7개 + 현재 건강수치 6개')
+
+
+=== CELL 7 (code) ===
+# STEP 6. XGBoost 모델 학습
+
+models  = {}  # 6개 지표 모델을 저장할 딕셔너리
+results = {}  # 6개 지표 성능 점수를 저장할 딕셔너리
+
+target_labels = {
+    'delta_waist':'허리둘레 Δ(cm)', 'delta_sbp':'수축기혈압 Δ(mmHg)',
+    'delta_dbp':'이완기혈압 Δ(mmHg)', 'delta_bs':'공복혈당 Δ(mg/dL)',
+    'delta_tg':'중성지방 Δ(mg/dL)', 'delta_hdl':'HDL Δ(mg/dL)',
+}
+
+print(f'🚀 XGBoost 학습 시작 ({len(X_train):,}건)...\n')
+
+for col in target_cols:
+    model = XGBRegressor(
+        n_estimators=300,       # 트리 300개 생성 (많을수록 정교하지만 느림)
+        learning_rate=0.05,     # 각 트리의 학습 보폭 (작을수록 신중하게 학습)
+        max_depth=6,            # 트리 1개의 최대 깊이 (깊을수록 복잡한 패턴 학습)
+        min_child_weight=50,    # 한 잎사귀 노드에 최소 50개 데이터 필요 → 과적합 방지
+        subsample=0.8,          # 각 트리 학습 시 전체 데이터의 80%만 사용 → 과적합 방지
+        colsample_bytree=0.8,   # 각 트리 학습 시 전체 피처의 80%만 사용 → 과적합 방지
+        tree_method='hist',     # 빠른 히스토그램 기반 학습 방법
+        device='cuda',          # GPU 사용 (없으면 'cpu'로 변경)
+        random_state=42         # 재현 가능한 결과를 위한 랜덤 시드 고정
+    )
+
+    model.fit(X_train, y_train[col],
+              eval_set=[(X_val, y_val[col])], verbose=False)
+    models[col] = model  # 학습된 모델 저장
+
+    pred = model.predict(X_val)  # 검증셋으로 예측
+
+    mae = mean_absolute_error(y_val[col], pred)
+
+    r2 = r2_score(y_val[col], pred)
+    results[col] = {'mae': mae, 'r2': r2}
+    print(f'  {target_labels[col]:<22} | MAE: {mae:>6.3f} | R²: {r2:.4f}')
+
+overall_r2 = np.mean([v['r2'] for v in results.values()])
+
+nmae_list    = [results[c]['mae'] / max(np.mean(np.abs(y_val[c])),1e-6)
+                for c in target_cols]
+overall_nmae = np.mean(nmae_list) * 100
+
+print(f"\n{'='*55}")
+print(f'  평균 R²: {overall_r2:.4f}  /  평균 오차율(NMAE): {overall_nmae:.2f}%')
+print(f'  [R² 기준] 0.70~0.85 적정 / 0.85~0.93 우수 / 0.93+ 과적합 의심')
+print(f"{'='*55}")
+
+
+=== CELL 8 (code) ===
+# STEP 7. 모델 저장
+
+import joblib  # 파이썬 객체를 파일로 저장/불러오기 하는 라이브러리
+
+joblib.dump(models,  'health_models_v5.pkl')
+
+joblib.dump(results, 'health_model_scores_v5.pkl')
+
+print('💾 저장 완료: health_models_v5.pkl / health_model_scores_v5.pkl')
+print('  나중에 모델 다시 사용할 때:')
+print('  models  = joblib.load("health_models_v5.pkl")')
+print('  results = joblib.load("health_model_scores_v5.pkl")')
+
+
+=== CELL 9 (code) ===
+# STEP 8. 시뮬레이터 함수 + 전체 예측 함수
+
+def get_max_loss_kg(bmi):
+    """BMI 구간별 현실적인 최대 감량 (9단계 세분화)"""
+    if bmi < 22:   return 8
+    elif bmi < 25: return 10
+    elif bmi < 27: return 12
+    elif bmi < 30: return 15
+    elif bmi < 32: return 20
+    elif bmi < 35: return 25
+    elif bmi < 38: return 30
+    elif bmi < 40: return 35
+    else:          return 50
+
+def metabolic_simulator_v3(user_info: dict, target_weight: float, silent: bool = False) -> dict:
+    """단일 목표 체중 예측"""
+    weight_diff = user_info['weight'] - target_weight
+    if weight_diff < 0:
+        return {'error': 'increase', 'message': '목표 체중이 현재 체중보다 높습니다.'}
+    if weight_diff == 0:
+        return {'error': 'same', 'message': '목표 체중이 현재 체중과 같습니다.'}
+
+    inp = pd.DataFrame([{
+        'gender':     user_info['gender'],
+        'age_code':   user_info['age_code'],
+        'height':     user_info['height'],
+        'smoke':      user_info['smoke'],
+        'drink':      user_info['drink'],
+        'weight_pre': user_info['weight'],
+        'weight_diff':weight_diff,
+        'waist_pre':  user_info['waist'],
+        'sbp_pre':    user_info['sbp'],
+        'dbp_pre':    user_info['dbp'],
+        'bs_pre':     user_info['bs'],
+        'tg_pre':     user_info['tg'],
+        'hdl_pre':    user_info['hdl'],
+    }]).astype('float32')
+
+    metric_info = [
+        ('delta_waist','waist','허리둘레',  'cm'),
+        ('delta_sbp',  'sbp',  '수축기혈압','mmHg'),
+        ('delta_dbp',  'dbp',  '이완기혈압','mmHg'),
+        ('delta_bs',   'bs',   '공복혈당',  'mg/dL'),
+        ('delta_tg',   'tg',   '중성지방',  'mg/dL'),
+        ('delta_hdl',  'hdl',  'HDL',       'mg/dL'),
+    ]
+    lower_bounds = {
+        'delta_waist':-40, 'delta_sbp':-60, 'delta_dbp':-40,
+        'delta_bs':-80,    'delta_tg':-400,  'delta_hdl':-30,
+    }
+    upper_bounds = {'delta_hdl': 30}
+    smoke_label = {0:'비흡연/금연', 1:'현재흡연'}
+    drink_label = {0:'비음주', 1:'음주'}
+    output = {}
+
+    if not silent:
+        print(f"\n{'='*65}")
+        print(f'  🏥 AI 대사증후군 개선 시뮬레이터')
+        print(f"{'='*65}")
+        print(f'  체중:  {user_info["weight"]}kg → {target_weight}kg  (-{weight_diff:.1f}kg 감량)')
+        print(f'  흡연:  {smoke_label.get(user_info["smoke"],"?")} / 음주: {drink_label.get(user_info["drink"],"?")}')
+        print(f"{'-'*65}")
+        print(f"  {'지표':<12} {'현재값':>8} {'예측값':>8} {'변화량':>8}  오차범위")
+        print(f"  {'-'*61}")
+
+    for t_col, pre_key, name, unit in metric_info:
+        curr      = float(user_info.get(pre_key, 0))
+        delta_raw = float(models[t_col].predict(inp)[0])
+        delta     = max(delta_raw, lower_bounds[t_col])
+        if t_col in upper_bounds:
+            delta = min(delta, upper_bounds[t_col])
+        predicted = curr + delta
+        mae       = results[t_col]['mae']
+        mark      = '↓' if delta < 0 else '↑'
+        if not silent:
+            print(f'  {name:<12} {curr:>7.1f}  {predicted:>7.1f}  {mark}{abs(delta):>5.1f} {unit:<7} ±{mae:.1f}')
+        output[name] = {
+            'current':   curr,
+            'predicte
+
+=== CELL 10 (code) ===
+# STEP 9. 시뮬레이터 테스트
+
+test_user = {
+    'gender':1, 'age_code':10, 'height':175.0,
+    'smoke':1,  'drink':1,
+    'weight':85.0,
+    'waist':96.0, 'sbp':138.0, 'dbp':88.0,
+    'bs':115.0,   'tg':210.0,  'hdl':35.0,
+}
+
+# ── 단일 예측 (흡연+음주) ───────────────────────────────────
+result = metabolic_simulator_v3(test_user, target_weight=75.0)
+if 'error' in result:
+    print(f"⚠️  오류: {result['message']}")
+
+# ── predict_all: 1kg 단위 전체 예측 ────────────────────────
+print("\n=== predict_all: 1kg 단위 전체 예측 결과 ===")
+all_result = predict_all(test_user)
+print(f"  현재 BMI:      {all_result['current_bmi']}")
+print(f"  정상체중 상한:  {all_result['normal_weight']}kg")
+print(f"  정상까지:      -{all_result['to_normal']}kg 남음")
+print(f"  슬라이더 최대:  {all_result['max_loss_kg']}kg 감량")
+print(f"  예측 구간:      1kg ~ {all_result['max_loss_kg']}kg ({len(all_result['predictions'])}개)")
+print(f"\n  {'감량':>4}  {'목표체중':>6}  {'허리':>6}  {'수축압':>7}  {'혈당':>7}  {'중성지방':>9}  {'HDL':>6}")
+print(f"  {'-'*62}")
+for kg in range(1, min(all_result['max_loss_kg']+1, 16)):
+    if f'{kg}kg' not in all_result['predictions']:
+        break
+    p = all_result['predictions'][f'{kg}kg']
+    target_w = test_user['weight'] - kg
+    print(f"  -{kg:>2}kg  "
+          f"{target_w:>6.1f}  "
+          f"{p['허리둘레']['predicted']:>6.1f}  "
+          f"{p['수축기혈압']['predicted']:>7.1f}  "
+          f"{p['공복혈당']['predicted']:>7.1f}  "
+          f"{p['중성지방']['predicted']:>9.1f}  "
+          f"{p['HDL']['predicted']:>6.1f}")
+
+# ── 에러 처리 검증 ─────────────────────────────────────────
+print("\n=== 에러 처리 검증 ===")
+r1 = metabolic_simulator_v3(test_user, target_weight=85.0, silent=True)
+r2 = metabolic_simulator_v3(test_user, target_weight=90.0, silent=True)
+print(f"  동일 체중:    {r1.get('error','없음')} → {r1.get('message','')}")
+print(f"  더 높은 체중: {r2.get('error','없음')} → {r2.get('message','')}")
+
+# ── 흡연/음주 패널티 비교 (4가지 케이스) ──────────────────
+print(f"\n{'='*72}")
+print(f"  흡연/음주 패널티 비교 (85kg → 75kg, 10kg 감량 기준)")
+print(f"{'='*72}")
+print(f"  {'케이스':<18}  {'허리':>6}  {'수축압':>7}  {'이완압':>7}  {'혈당':>7}  {'중성지방':>9}  {'HDL':>6}")
+print(f"  {'-'*68}")
+
+cases = [
+    (0, 0, '비흡연 / 비음주'),
+    (1, 0, '현재흡연 / 비음주'),
+    (0, 1, '비흡연 / 음주'),
+    (1, 1, '현재흡연 / 음주'),
+]
+
+case_results = {}
+for smoke, drink, label in cases:
+    u = {**test_user, 'smoke': smoke, 'drink': drink}
+    r = metabolic_simulator_v3(u, target_weight=75.0, silent=True)  # silent=True 로 print 억제
+    if 'error' not in r:
+        case_results[label] = r
+        print(f"  {label:<18}  "
+              f"{r['허리둘레']['predicted']:>6.1f}  "
+              f"{r['수축기혈압']['predicted']:>7.1f}  "
+              f"{r['이완기혈압']['predicted']:>7.1f}  "
+              f"{r['공복혈당']['predicted']:>7.1f}  "
+              f"{r['중성지방']['predicted']:>9.1f}  "
+              f"{r['HDL']['predicted']:>6.1f}")
+
+print(f"  {'-'*68}")
+print(f"  (현재값: 허리 96 / 수축압 138 / 이완압 88 / 혈당 115 / 중성지방 210 / HDL 35)")
+
+# ── 패널티 수치 분석 ───────────────────────────────────────
+print(f"\n  [패널티 효과 분석]")
+base = case_results.get('비흡연 /
+
+=== CELL 11 (markdown) ===
+## STEP 10. 원시데이터 교차검증
+BMI 구간별 지표 평균값과 모델 예측값의 방향성을 비교합니다.
+
+
+=== CELL 12 (code) ===
+# STEP 10. 원시데이터 교차검증
+
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams['font.family'] = 'Malgun Gothic'   # 한글 폰트 설정
+matplotlib.rcParams['axes.unicode_minus'] = False       # 마이너스 기호 깨짐 방지
+
+print('=' * 65)
+print('  [원시데이터 교차검증] 체중 구간별 평균 지표값 비교')
+print('=' * 65)
+
+bmi_ranges = [
+    (18.0, 20.0, 'BMI 18-20'),  # 저체중~정상 하단
+    (20.0, 22.0, 'BMI 20-22'),  # 정상
+    (22.0, 24.0, 'BMI 22-24'),  # 정상 상단
+    (24.0, 26.0, 'BMI 24-26'),  # 과체중 시작
+    (26.0, 28.0, 'BMI 26-28'),  # 과체중
+    (28.0, 30.0, 'BMI 28-30'),  # 비만 시작
+    (30.0, 33.0, 'BMI 30-33'),  # 비만
+    (33.0, 37.0, 'BMI 33-37'),  # 고도비만
+]
+
+cols   = ['sbp','dbp','waist','bs','tg','hdl']
+labels = ['수축기혈압','이완기혈압','허리둘레','공복혈당','중성지방','HDL']
+
+rows = []
+for lo, hi, name in bmi_ranges:
+    grp = raw_df[(raw_df['bmi'] >= lo) & (raw_df['bmi'] < hi)]
+    if len(grp) < 100:
+        continue
+    row = {'구간': name, '인원수': len(grp)}
+    for c in cols:
+        row[c] = grp[c].mean()
+    rows.append(row)
+
+df_bmi = pd.DataFrame(rows).set_index('구간')
+print('\n[BMI 구간별 평균 지표값]')
+print(df_bmi[['인원수'] + cols].round(1).to_string())
+
+# ── 체중 구간별 기울기 분석 ─────────────────────────────────
+print('\n' + '=' * 65)
+print('  [체중 1kg 증가 시 평균 지표 변화량]')
+print('  (원시데이터 단면 비교 - 방향성 검증용)')
+print('=' * 65)
+
+weight_means = raw_df.copy()
+weight_means['weight_bin'] = (weight_means['weight'] // 5 * 5).astype(int)  # 5kg 단위
+grp_weight = weight_means.groupby('weight_bin')[cols].mean()
+grp_weight = grp_weight[(grp_weight.index >= 50) & (grp_weight.index <= 120)]
+
+slopes = {}
+for c, label in zip(cols, labels):
+    x    = grp_weight.index.values.astype(float)
+    y    = grp_weight[c].values
+    coef = np.polyfit(x, y, 1)
+    slopes[c] = coef[0]  # 기울기 = 체중 1kg 증가 시 지표 변화량
+
+print(f"\n  {'지표':<12} {'체중 1↑ 시':>10}  {'체중 1↓ 시(감량효과)':>20}  방향")
+print(f"  {'-'*60}")
+for c, label in zip(cols, labels):
+    s        = slopes[c]
+    expected = '✅ 정상' if (c != 'hdl' and s > 0) or (c == 'hdl' and s < 0) else '⚠️ 확인필요'
+    direction = '감소' if s > 0 else '증가'
+    print(f"  {label:<12} {s:>+10.3f}  {'→ 감량 시 ' + direction:>20}  {expected}")
+
+# ── 모델 예측 vs 원시데이터 방향 비교 ───────────────────────
+print('\n' + '=' * 65)
+print('  [모델 예측 vs 원시데이터 비교]')
+print('  조건: 40대 남성 / 비흡연 / 비음주 / 체중 80kg → 74kg (약 6kg 감량)')
+print('=' * 65)
+
+grp_high = raw_df[
+    (raw_df['weight'] >= 78) & (raw_df['weight'] < 83) &
+    (raw_df['gender'] == 1)  & (raw_df['age_code'].isin([9, 10]))
+]
+grp_low = raw_df[
+    (raw_df['weight'] >= 72) & (raw_df['weight'] < 77) &
+    (raw_df['gender'] == 1)  & (raw_df['age_code'].isin([9, 10]))
+]
+
+raw_diff  = grp_low[cols].mean() - grp_high[cols].mean()
+avg_stats = grp_high[cols].mean()  # 고체중 그룹 평균 지표값
+
+model_inp = pd.DataFrame([{
+    'gender':     1, 'age_code': 10, 'height': 172.0,
+    'smoke':      0, 'drink':    0,
+    'weight_pre': 80.0,
+    'weight_diff': 6.0,
+    'waist_pre':  avg_stats['waist'],
+    'sbp_pre':    avg_stats['sbp'],
+    'dbp_pre':    avg_stats['dbp'],
+    'bs_pre':     avg_stats['bs'],
+    'tg_pre':    
+
+=== CELL 13 (code) ===
+def predict_all(user_info: dict) -> dict:
+    bmi           = user_info['weight'] / ((user_info['height']/100) ** 2)
+    max_loss_kg   = get_max_loss_kg(bmi)
+    normal_weight = round(24.9 * ((user_info['height']/100) ** 2), 1)
+    to_normal     = round(user_info['weight'] - normal_weight, 1)
+
+    metric_info = [
+        ('delta_waist','waist','허리둘레',  'cm'),
+        ('delta_sbp',  'sbp',  '수축기혈압','mmHg'),
+        ('delta_dbp',  'dbp',  '이완기혈압','mmHg'),
+        ('delta_bs',   'bs',   '공복혈당',  'mg/dL'),
+        ('delta_tg',   'tg',   '중성지방',  'mg/dL'),
+        ('delta_hdl',  'hdl',  'HDL',       'mg/dL'),
+    ]
+    lower_bounds = {
+        'delta_waist':-40, 'delta_sbp':-60, 'delta_dbp':-40,
+        'delta_bs':-80,    'delta_tg':-400,  'delta_hdl':-30,
+    }
+    upper_bounds = {'delta_hdl': 30}
+    predictions  = {}
+
+    for kg in range(1, max_loss_kg + 1):
+        target = user_info['weight'] - kg
+        if target < 45:
+            break
+
+        # ← 핵심 수정 부분
+        actual_target = max(target, 45.0)
+        act_diff      = user_info['weight'] - actual_target
+
+        inp = pd.DataFrame([{
+            'gender':      user_info['gender'],
+            'age_code':    user_info['age_code'],
+            'height':      user_info['height'],
+            'smoke':       user_info['smoke'],
+            'drink':       user_info['drink'],
+            'weight_pre':  user_info['weight'],
+            'weight_diff': act_diff,   # ← float(kg) 에서 act_diff 로 수정
+            'waist_pre':   user_info['waist'],
+            'sbp_pre':     user_info['sbp'],
+            'dbp_pre':     user_info['dbp'],
+            'bs_pre':      user_info['bs'],
+            'tg_pre':      user_info['tg'],
+            'hdl_pre':     user_info['hdl'],
+        }]).astype('float32')
+
+        step_result = {}
+        for t_col, pre_key, name, unit in metric_info:
+            curr      = float(user_info.get(pre_key, 0))
+            delta_raw = float(models[t_col].predict(inp)[0])
+            delta     = max(delta_raw, lower_bounds[t_col])
+            if t_col in upper_bounds:
+                delta = min(delta, upper_bounds[t_col])
+            step_result[name] = {
+                'current':   curr,
+                'predicted': round(curr + delta, 1),
+                'delta':     round(delta, 1),
+                'mae':       round(results[t_col]['mae'], 1),
+                'unit':      unit,
+            }
+        predictions[f'{kg}kg'] = step_result
+
+    return {
+        'predictions':   predictions,
+        'max_loss_kg':   max_loss_kg,
+        'current_bmi':   round(bmi, 1),
+        'normal_weight': normal_weight,
+        'to_normal':     to_normal,
+    }
+
+print("✅ predict_all 재정의 완료")
+
+=== CELL 14 (code) ===
+# ── 재정의 후 버그 수정 확인 테스트 ──────────────────────────
+test_user = {
+    'gender':   1,
+    'age_code': 10,
+    'height':   170.0,
+    'smoke':    1,
+    'drink':    1,
+    'weight':   105.0,
+    'waist':    108.0,
+    'sbp':      148.0,
+    'dbp':      95.0,
+    'bs':       115.0,
+    'tg':       220.0,
+    'hdl':      34.0,
+}
+
+all_result = predict_all(test_user)
+
+print(f"슬라이더 최대: {all_result['max_loss_kg']}kg\n")
+print(f"  {'감량':>4}  {'목표체중':>6}  {'허리':>6}  {'수축압':>7}  {'이완압':>7}  {'혈당':>7}  {'중성지방':>9}  {'HDL':>6}")
+print(f"  {'-'*74}")
+
+prev_waist = None
+for kg in range(1, all_result['max_loss_kg'] + 1):
+    if f'{kg}kg' not in all_result['predictions']:
+        break
+    p        = all_result['predictions'][f'{kg}kg']
+    target_w = test_user['weight'] - kg
+    waist    = p['허리둘레']['predicted']
+
+    # 이전 값과 동일하면 ← 버그 표시
+    bug = ' ← ⚠️ 이전과 동일 (버그)' if prev_waist == waist else ''
+    prev_waist = waist
+
+    # 대사증후군 해소 여부
+    syn = 0
+    if waist >= 90:                                         syn += 1
+    if p['중성지방']['predicted'] >= 150:                   syn += 1
+    if p['HDL']['predicted'] < 40:                          syn += 1
+    if p['수축기혈압']['predicted'] >= 130 or \
+       p['이완기혈압']['predicted'] >= 85:                  syn += 1
+    if p['공복혈당']['predicted'] >= 100:                   syn += 1
+    marker = ' ← ✅ 대사증후군 해소!' if syn < 3 else ''
+
+    print(f"  -{kg:>2}kg  "
+          f"{target_w:>6.1f}  "
+          f"{waist:>6.1f}  "
+          f"{p['수축기혈압']['predicted']:>7.1f}  "
+          f"{p['이완기혈압']['predicted']:>7.1f}  "
+          f"{p['공복혈당']['predicted']:>7.1f}  "
+          f"{p['중성지방']['predicted']:>9.1f}  "
+          f"{p['HDL']['predicted']:>6.1f}"
+          f"{bug}{marker}")
+
+=== CELL 15 (code) ===
+# 더미에서 105kg 체중 그룹의 실제 step 최대값 확인
+heavy_group = df_dummy[
+    (df_dummy['weight_pre'] >= 100) &
+    (df_dummy['weight_pre'] <= 110)
+]
+print(f"체중 100~110kg 그룹 step 최대값: {heavy_group['step'].max()}")
+print(f"체중 100~110kg 그룹 weight_diff 최대값: {heavy_group['weight_diff'].max()}")
+print(f"\nstep 분포:")
+print(heavy_group['step'].value_counts().sort_index().tail(10))
+
+=== CELL 16 (code) ===
+
+
