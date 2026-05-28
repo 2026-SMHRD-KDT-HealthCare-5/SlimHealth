@@ -1,4 +1,4 @@
-import { KPIInputFields } from "../utils/utils";
+import { KPIInputFields } from "../../utils/utils";
 
 export const convertKPIResultList = (adviceData) => {
   const result = adviceData.advices.map((item) => {
