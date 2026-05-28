@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { checkDuplicateAccountApi, joinApi } from "../api/userApi";
 import { inputFixWidth } from "../utils/utils";
 import { RadioButton } from "../components/RadioButton/RadioButton";
+import { useMutation } from "@tanstack/react-query";
 
 const MaleCode = "Male";
 const FemaleCode = "Female";
@@ -37,11 +38,9 @@ const Join = () => {
   //중복확인 여부
   const [isCheckedAccount, setIsCheckedAccount] = useState(false);
 
-  //중복확인 함수
-  const handleCheckDuplicate = async () => {
-    try {
-      const data = await checkDuplicateAccountApi(account);
-
+  const checkDuplicateMutation = useMutation({
+    mutationFn: checkDuplicateAccountApi,
+    onSuccess: (data) => {
       //아이디 중복여부 검증
       let content;
       if (data.isDuplicate) {
@@ -58,24 +57,17 @@ const Join = () => {
         false, //isCancelButton
         closeDialog, //onConfirmClick
       );
-    } catch (e) {
-      console.log(e);
-    }
+    },
+  });
+
+  //중복확인 함수
+  const handleCheckDuplicate = () => {
+    checkDuplicateMutation.mutate(account);
   };
 
-  //회원가입 함수
-  const handleJoin = async () => {
-    try {
-      await joinApi({
-        account,
-        password,
-        name,
-        gender,
-        birthYear,
-        email,
-        phoneNumber,
-      });
-
+  const joinMutation = useMutation({
+    mutationFn: joinApi,
+    onSuccess: (data) => {
       openDialog(
         "회원가입 성공", //title
         "회원가입이 성공하였습니다.", //content
@@ -85,9 +77,28 @@ const Join = () => {
 
       //회원가입 성공 시 메인으로 돌아가기
       nav("/");
-    } catch (e) {
-      console.log(e);
-    }
+    },
+    onError: () => {
+      openDialog(
+        "회원가입 실패", //title
+        "입력정보를 다시 확인해주세요.", //content
+        false, //isCancelButton
+        closeDialog, //onConfirmClick
+      );
+    },
+  });
+
+  //회원가입 함수
+  const handleJoin = () => {
+    joinMutation.mutate({
+      account,
+      password,
+      name,
+      gender,
+      birthYear,
+      email,
+      phoneNumber,
+    });
   };
 
   const openJoinDialog = () => {
