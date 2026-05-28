@@ -20,30 +20,63 @@ import {
 import { CheckBox } from "../components/CheckBox/CheckBox";
 import { RadioButton } from "../components/RadioButton/RadioButton";
 import { predictionPath } from "../App";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 
 const DataInput = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const id = searchParams.get("id");
+
+  //이전 데이터 불러오기
+  const { data: recentInputData } = useSuspenseQuery({
+    queryKey: ["recentInput", id],
+    queryFn: async () => {
+      if (!id) {
+        return null;
+      } else {
+        return (await getHealthDataApi(id)).physical;
+      }
+    },
+  });
+
   const { openDialog, closeDialog, isLoading, setIsLoading } =
     useContext(Context);
   const nav = useNavigate();
 
-  const [formData, setFormData] = useState({
-    userHeight: 0,
-    userWeight: 0,
-    waistLine: 0,
-    cholesterol: 0,
-    systolicBp: 0,
-    diastolicBp: 0,
-    bloodGlucose: 0,
-    triglyceride: 0,
-  });
+  const [formData, setFormData] = useState(
+    recentInputData
+      ? {
+          userHeight: recentInputData.height,
+          userWeight: recentInputData.weight,
+          waistLine: recentInputData.waist,
+          cholesterol: recentInputData.hdl,
+          systolicBp: recentInputData.sbp,
+          diastolicBp: recentInputData.dbp,
+          bloodGlucose: recentInputData.bs,
+          triglyceride: recentInputData.tg,
+        }
+      : {
+          userHeight: 0,
+          userWeight: 0,
+          waistLine: 0,
+          cholesterol: 0,
+          systolicBp: 0,
+          diastolicBp: 0,
+          bloodGlucose: 0,
+          triglyceride: 0,
+        },
+  );
 
-  const [isDrink, setIsDrink] = useState(false);
-  const [isSmoke, setIsSmoke] = useState(false);
+  const [isDrink, setIsDrink] = useState(
+    recentInputData ? recentInputData.drink === 1 : false,
+  );
+  const [isSmoke, setIsSmoke] = useState(
+    recentInputData ? recentInputData.smoke === 1 : false,
+  );
 
-  const [checkupDate, setCheckupDate] = useState("");
+  const [checkupDate, setCheckupDate] = useState(
+    recentInputData ? recentInputData.checkup_date : "",
+  );
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({
@@ -74,45 +107,46 @@ const DataInput = () => {
     }
   };
 
-  //ocr로 입력
-  const handleOcrInput = async (files) => {
-    //ocr 입력 api 연결
-    setIsLoading(true);
-    try {
-      const data = (await ocrInputApi(files)).ocr;
+  //ocr api 연결
+  const ocrMutation = useMutation({
+    mutationFn: ocrInputApi,
+
+    onMutate: () => {
+      setIsLoading(true);
+    },
+
+    onSuccess: (data) => {
+      const ocr = data.ocr;
 
       setFormData({
-        userHeight: data.height,
-        userWeight: data.weight,
-        waistLine: data.waist,
-        cholesterol: data.hdl,
-        systolicBp: data.sbp,
-        diastolicBp: data.dbp,
-        bloodGlucose: data.bs,
-        triglyceride: data.tg,
+        userHeight: ocr.height,
+        userWeight: ocr.weight,
+        waistLine: ocr.waist,
+        cholesterol: ocr.hdl,
+        systolicBp: ocr.sbp,
+        diastolicBp: ocr.dbp,
+        bloodGlucose: ocr.bs,
+        triglyceride: ocr.tg,
       });
-    } catch (e) {
-      console.log(e);
-    } finally {
+    },
+
+    onSettled: () => {
       setIsLoading(false);
-    }
+    },
+  });
+
+  //ocr로 입력
+  const handleOcrInput = (files) => {
+    ocrMutation.mutate(files);
   };
 
   //저장 버튼 활성화 여부
   const isSaveButtonDisable =
     dataInputFields.some((item) => !formData[item.key]) || !checkupDate;
 
-  //데이터 저장 버튼
-  const handleSaveData = async () => {
-    try {
-      const result = await saveHealthDataApi({
-        ...formData,
-        checkupDate,
-        isDrink: isDrink ? 1 : 0,
-        isSmoke: isSmoke ? 1 : 0,
-        id,
-      });
-
+  const saveHealthDataMutation = useMutation({
+    mutationFn: saveHealthDataApi,
+    onSuccess: (data) => {
       openDialog(
         "데이터 저장 성공", //title
         "데이터가 저장되었습니다. 해당 데이터로 바로 예측하시겠습니까?", //content
@@ -121,16 +155,25 @@ const DataInput = () => {
           if (id) {
             nav(`${predictionPath}?id=${id}`);
           } else {
-            nav(`${predictionPath}?id=${result.phyid}`);
+            nav(`${predictionPath}?id=${data.phyid}`);
           }
           closeDialog();
         }, //onConfirmClick
       );
 
       nav("/");
-    } catch (e) {
-      console.log(e);
-    }
+    },
+  });
+
+  //데이터 저장 버튼
+  const handleSaveData = () => {
+    saveHealthDataMutation.mutate({
+      ...formData,
+      checkupDate,
+      isDrink: isDrink ? 1 : 0,
+      isSmoke: isSmoke ? 1 : 0,
+      id,
+    });
   };
 
   const handleSaveDataDialog = () => {
@@ -141,34 +184,6 @@ const DataInput = () => {
       handleSaveData, //onConfirmClick
     );
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (id) {
-          //이전 데이터 연동
-          const data = (await getHealthDataApi(id)).physical;
-
-          setFormData({
-            userHeight: data.height,
-            userWeight: data.weight,
-            waistLine: data.waist,
-            cholesterol: data.hdl,
-            systolicBp: data.sbp,
-            diastolicBp: data.dbp,
-            bloodGlucose: data.bs,
-            triglyceride: data.tg,
-          });
-          setIsDrink(data.drink === 1);
-          setIsSmoke(data.smoke === 1);
-          setCheckupDate(data.checkup_date);
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    };
-    fetchData();
-  }, [id]);
 
   useEffect(() => {
     return () => {

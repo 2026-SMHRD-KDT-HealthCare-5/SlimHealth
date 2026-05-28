@@ -1,16 +1,22 @@
 import React, { Suspense } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { TopNavigation } from "../../components/TopNavigation";
 import { LoadingBox } from "../../components/LoadingBox/LoadingBox";
 
 const CommonLayout = () => {
+  const location = useLocation();
+
   return (
-    <Suspense fallback={<LoadingBox />}>
-      <div className="mainContainer">
-        <TopNavigation isBackButton menuList={[]} />
+    <div className="mainContainer">
+      <TopNavigation isBackButton menuList={[]} />
+
+      <Suspense
+        key={location.pathname + location.search}
+        fallback={<LoadingBox />}
+      >
         <Outlet />
-      </div>
-    </Suspense>
+      </Suspense>
+    </div>
   );
 };
 

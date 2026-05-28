@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import { Text } from "../components/Text/Text";
 import { totalInputFields } from "../utils/utils";
 import { TableData } from "../components/TableData/TableData";
@@ -12,6 +12,8 @@ import { OutlinedButton } from "../components/OutlinedButton/OutlinedButton";
 import Context from "../context/context";
 import { useNavigate } from "react-router-dom";
 import { dataInputPath, dataUpdatePath, predictionPath } from "../App";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 const rowCount = 10;
 
@@ -49,35 +51,24 @@ const tableColumns = [
 const DataInputHistory = () => {
   const { openDialog, closeDialog } = useContext(Context);
   const nav = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { data } = useSuspenseQuery({
+    queryKey: ["healthDataHistories"],
+    queryFn: async () => {
+      return await getHealthDataHistories(1);
+    },
+  });
+  const maxPage = Math.ceil(data.length / rowCount);
 
   const [page, setPage] = useState(1);
-  const [maxPage, setMaxPage] = useState(1);
-  const [allDataHistoryList, setAllDataHistoryList] = useState([]);
-  const [dataHistoryList, setDataHistoryList] = useState([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await getHealthDataHistories(1);
-        setMaxPage(Math.ceil(data.length / rowCount));
-        setAllDataHistoryList(data);
-      } catch (e) {
-        console.log(e);
-      }
-    };
+  const dataHistoryList = useMemo(() => {
+    const startIndex = (page - 1) * rowCount;
+    const endIndex = startIndex + rowCount;
 
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const setData = () => {
-      const startIndex = (page - 1) * rowCount;
-      const endIndex = startIndex + rowCount;
-
-      setDataHistoryList(allDataHistoryList.slice(startIndex, endIndex));
-    };
-    setData();
-  }, [page, allDataHistoryList]);
+    return data.slice(startIndex, endIndex);
+  }, [page, data]);
 
   //버튼 기능
   const handleButtonClick = (id, key) => {
@@ -115,11 +106,9 @@ const DataInputHistory = () => {
   const deleteHistory = async (id) => {
     try {
       await deleteDataHistory(id);
-      setDataHistoryList(
-        dataHistoryList.filter((item) => {
-          return item.id != id;
-        }),
-      );
+      queryClient.setQueryData(["healthDataHistories"], (oldData) => {
+        return oldData.filter((item) => item.id !== id);
+      });
     } catch (e) {
       console.log(e);
     }
