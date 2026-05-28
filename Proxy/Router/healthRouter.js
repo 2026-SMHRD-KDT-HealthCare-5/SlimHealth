@@ -663,7 +663,8 @@ router.get("/advice/:physical_idx", async (req, res) => {
     try {
         const physicalIdx = req.params.physical_idx;
 
-        // tbl_physical + tbl_user JOIN
+        // tbl_physical + tbl_user JOIN 
+        // DB에 저장된 조언 있으면 바로 반환
         const [physRows] = await conn.query(`
             SELECT p.*, u.gender, u.birth_date,
                    YEAR(p.checkup_date) - YEAR(u.birth_date) AS age
@@ -677,6 +678,12 @@ router.get("/advice/:physical_idx", async (req, res) => {
         }
         const p = physRows[0];
 
+        // 캐시된 조언 있으면 반환
+        if (p.advice_json) {
+            return res.status(200).json(p.advice_json);
+        }
+
+        // 없으면 gemini 호출
         // tbl_analysis 에서 예측 데이터
         const [analysisRows] = await conn.query(
             "SELECT * FROM tbl_analysis WHERE physical_idx = ? ORDER BY weight_loss ASC",
@@ -702,6 +709,13 @@ router.get("/advice/:physical_idx", async (req, res) => {
         const currentMetrics = { waist: p.waist, sbp: p.sbp, dbp: p.dbp, bs: p.bs, tg: p.tg, hdl: p.hdl };
 
         const advice = await getHealthAdvice(ocrResult, userInput, currentMetrics, allPredictions);
+
+        // DB에 저장
+        await conn.query(
+            "UPDATE tbl_physical SET advice_json = ? WHERE physical_idx = ?",
+            [JSON.stringify(advice), physicalIdx]
+        );
+        
         return res.status(200).json(advice);
 
     } catch (err) {
