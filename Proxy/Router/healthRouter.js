@@ -574,7 +574,15 @@ router.post("/update/:physical_idx", async (req, res) => {
                 predictWaist
             ]);
         }
-
+		
+        // 기존 LLM 데이터 삭제
+        const updateOldAdviceSQL = `
+            UPDATE tbl_physical
+            SET advice_json = NULL
+            WHERE physical_idx = ?;
+        `;
+        await conn.query(updateOldAdviceSQL, [physicalIdx]);
+		
         return res.status(200).json({
             success: true,
             message: "건강 데이터 수정 및 예측 데이터 갱신이 완료되었습니다.",
