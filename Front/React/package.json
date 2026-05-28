@@ -13,6 +13,7 @@
     "generate": "plop --plopfile plopfile.cjs"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.100.14",
     "axios": "^1.16.0",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.6",

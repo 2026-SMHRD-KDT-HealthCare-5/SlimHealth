@@ -1,4 +1,5 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Text } from "../components/Text/Text";
 import { SummaryBox } from "../components/SummaryBox/SummaryBox";
 import { ResultBox } from "../components/ResultBox/ResultBox";
@@ -18,140 +19,84 @@ import { convertKPIResultList } from "../features/predictionFeatures";
 import Context from "../context/context";
 
 const Prediction = () => {
-  const { isLoading, setIsLoading } = useContext(Context);
-  const [searchParams, setSearchParams] = useSearchParams();
-
+  const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
 
-  //슬라이더 부분
-  const [predictions, setPredictions] = useState([]);
+  //예측 데이터 불러오기
+  const { data: predictionData } = useSuspenseQuery({
+    queryKey: ["prediction", id],
+    queryFn: async () => {
+      const [healthData, adviceData] = await Promise.all([
+        getHealthDataApi(id),
+        getHealthAdviceApi(id),
+      ]);
 
-  const [currentSliderImage, setCurrentSliderImage] = useState(
-    sliderImageList[0],
+      return { healthData, adviceData };
+    },
+  });
+
+  const { healthData, adviceData } = predictionData;
+
+  //슬라이더 부분 계산
+  const predictions = healthData.predictions;
+  const sliderMaxValue = parseInt(healthData.physical.weight);
+  const sliderMinValue = sliderMaxValue - predictions.length;
+  const maxLossKg = predictions.length;
+
+  const initialWeight = sliderMaxValue;
+  const bmi = getBmi(healthData.physical.height, initialWeight);
+
+  const [sliderValue, setSliderValue] = useState(
+    weightToSliderValue(initialWeight, sliderMaxValue, sliderMinValue),
   );
+  const [weight, setWeight] = useState(initialWeight);
 
-  const [sliderValue, setSliderValue] = useState(0);
-  const [sliderMaxValue, setSliderMaxValue] = useState(0);
-  const [sliderMinValue, setSliderMinValue] = useState(0);
+  const currentLossKg = sliderMaxValue - weight;
 
-  const [bmi, setBmi] = useState(0);
-  const [maxLossKg, setMaxLossKg] = useState(0);
-  const [weight, setWeight] = useState(0);
+  const currentSliderImage = useMemo(() => {
+    return sliderImageList[
+      getCurrentCharacterStage({
+        bmi,
+        currentLossKg,
+        maxLossKg,
+      }) - 1
+    ];
+  }, [bmi, currentLossKg, maxLossKg]);
 
-  //요약 부분
-  const [summary, setSummary] = useState(null);
+  //5대 지표 부분
+  const kpiResultList = useMemo(() => {
+    return convertKPIResultList(adviceData).map((item) => ({
+      ...item,
+      predictionValue:
+        currentLossKg === 0
+          ? item.current_value
+          : predictions[predictions.length - currentLossKg][item.key],
+    }));
+  }, [adviceData, predictions, currentLossKg]);
 
-  //5대 지표 예측 부분
-  const [kpiResultList, setKpiResultList] = useState([]);
+  //요약 박스
+  const summary = {
+    grade: adviceData.risk_level,
+    overall_summary: adviceData.overall_summary,
+    syndrome_count: adviceData.syndrome_count,
+    recommended_loss_kg: adviceData.recommended_loss_kg,
+    recommended_reason: adviceData.recommended_reason,
+  };
 
-  //개선사항 부분
-  const [improvementList, setImprovementList] = useState(null);
-
-  //긴 분석내용 부분
-  const [analysisContent, setAnalysisContent] = useState("");
+  const improvementList = adviceData.lifestyle_tips;
+  const analysisContent = adviceData.total_advice;
 
   const handleChangeSlider = (value) => {
     setSliderValue(value);
 
-    const tempWeight = sliderValueToWeight(
+    const nextWeight = sliderValueToWeight(
       value,
       sliderMaxValue,
       sliderMinValue,
     );
-    setWeight(tempWeight);
 
-    const currentLossKg = sliderMaxValue - tempWeight;
-    setCurrentSliderImage(
-      sliderImageList[
-        getCurrentCharacterStage({
-          bmi,
-          currentLossKg,
-          maxLossKg,
-        }) - 1
-      ],
-    );
-
-    //예측 부분 조정
-    setKpiResultList((prev) =>
-      prev.map((item) => ({
-        ...item,
-        predictionValue:
-          currentLossKg == 0
-            ? item.current_value
-            : predictions[predictions.length - currentLossKg][item.key],
-      })),
-    );
+    setWeight(nextWeight);
   };
-
-  useEffect(() => {
-    //5대지표 예측결과 및 슬라이더 초기값 설정
-    const fetchKPIPrediction = async () => {
-      setIsLoading(true);
-      try {
-        const [data, adviceData] = await Promise.all([
-          getHealthDataApi(id),
-          getHealthAdviceApi(id),
-        ]);
-
-        const tempPredictions = data.predictions;
-        setPredictions(tempPredictions);
-
-        const tempSliderMaxValue = parseInt(data.physical.weight);
-        setSliderMaxValue(tempSliderMaxValue);
-        const tempSliderMinValue =
-          parseInt(data.physical.weight) - data.predictions.length;
-        setSliderMinValue(tempSliderMinValue);
-
-        const tempWeight = parseInt(data.physical.weight);
-        setWeight(tempWeight);
-        const tempBmi = getBmi(data.physical.height, tempWeight);
-        setBmi(tempBmi);
-        const tempMaxLossKg = data.predictions.length;
-        setMaxLossKg(tempMaxLossKg);
-
-        const sliderVal = weightToSliderValue(
-          tempWeight,
-          tempSliderMaxValue,
-          tempSliderMinValue,
-        );
-        setSliderValue(sliderVal);
-
-        setCurrentSliderImage(
-          sliderImageList[
-            getCurrentCharacterStage({
-              bmi: tempBmi,
-              currentLossKg: tempSliderMaxValue - tempWeight,
-              maxLossKg: tempMaxLossKg,
-            }) - 1
-          ],
-        );
-
-        //5대지표 예측결과 설정
-        setKpiResultList(convertKPIResultList(adviceData));
-
-        //요약박스 설정
-        setSummary({
-          grade: adviceData.risk_level,
-          overall_summary: adviceData.overall_summary,
-          syndrome_count: adviceData.syndrome_count,
-          recommended_loss_kg: adviceData.recommended_loss_kg,
-          recommended_reason: adviceData.recommended_reason,
-        });
-
-        //개선사항 설정
-        setImprovementList(adviceData.lifestyle_tips);
-
-        //긴 분석내용 설정
-        setAnalysisContent(adviceData.total_advice);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchKPIPrediction();
-  }, [id, setIsLoading]);
 
   return (
     <div className="contentContainer">

@@ -9,18 +9,19 @@ import { useNavigate } from "react-router-dom";
 import Context from "../context/context";
 import { loginApi } from "../api/userApi";
 import { joinPath } from "../App";
+import { useMutation } from "@tanstack/react-query";
 
 const Login = () => {
-  const { setUserInfo, processLogin, processLogout, openDialog, closeDialog } =
+  const { processLogin, processLogout, openDialog, closeDialog } =
     useContext(Context);
 
   const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
   const nav = useNavigate();
 
-  const handleLogin = async () => {
-    try {
-      const data = await loginApi({ account, password });
+  const loginMutation = useMutation({
+    mutationFn: loginApi,
+    onSuccess: (data) => {
       if (data.success) {
         processLogin({ ...data.user, accessToken: data.token });
         nav("/");
@@ -32,16 +33,19 @@ const Login = () => {
           closeDialog, //onConfirmClick
         );
       }
-    } catch (e) {
-      console.log(e);
-
+    },
+    onError: () => {
       openDialog(
         "로그인 오류", //title
         "아이디 또는 비밀번호를 확인해주세요", //content
         false, //isCancelButton
         closeDialog, //onConfirmClick
       );
-    }
+    },
+  });
+
+  const handleLogin = () => {
+    loginMutation.mutate({ account, password });
   };
 
   useEffect(() => {
@@ -81,7 +85,10 @@ const Login = () => {
         >
           회원가입
         </OutlinedButton>
-        <Button isDisabled={!(account && password)} onClick={handleLogin}>
+        <Button
+          isDisabled={!(account && password) || loginMutation.isPending}
+          onClick={handleLogin}
+        >
           로그인
         </Button>
       </div>
