@@ -1,6 +1,6 @@
 import { KPIInputFields } from "../../utils/utils";
 
-export const convertKPIResultList = (adviceData) => {
+export const convertKPIResultList = (healthData, adviceData) => {
   const result = adviceData.advices.map((item) => {
     const targetField = KPIInputFields.find((field) => {
       return field.title == item.indicator;
@@ -10,8 +10,8 @@ export const convertKPIResultList = (adviceData) => {
       indicator: item.indicator,
       status: item.status,
       unit: targetField.unit,
-      current_value: item.current_value.replace(targetField.unit, ""),
-      predictionValue: item.current_value.replace(targetField.unit, ""),
+      current_value: healthData.physical[targetField.key],
+      predictionValue: healthData.physical[targetField.key],
       message: item.message,
     };
   });
