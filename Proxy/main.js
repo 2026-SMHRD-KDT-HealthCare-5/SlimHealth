@@ -19,9 +19,9 @@ const authRequired = require("./middleware/authRequired");
 const healthRouter = require("./Router/healthRouter");
 const userRouter = require("./Router/userRouter");
 const ocrRouter = require("./Router/ocrRouter");
-// const authRouter = require("./Router/authRouter");
+const authRouter = require("./Router/authRouter");
 
-// app.use("/api/auth", authRouter);
+app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/health", authRequired, healthRouter);
 app.use("/api/ocr", ocrRouter);

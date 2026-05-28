@@ -66,76 +66,76 @@ router.post("/create", async ( req, res )=>{
 // =======================================================
 // 2. Read - 조회하기 = 로그인 + JWT 토큰 발급 
 // =======================================================
-router.post("/read", async (req, res) => {
-    try {
-        const { account, password } = req.body;
+// router.post("/read", async (req, res) => {
+//     try {
+//         const { account, password } = req.body;
 
-        if (!account || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "아이디와 비밀번호를 입력해주세요."
-            });
-        }
+//         if (!account || !password) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "아이디와 비밀번호를 입력해주세요."
+//             });
+//         }
 
-        const sql_read_userdata = `SELECT * FROM tbl_user WHERE id = ?`;
+//         const sql_read_userdata = `SELECT * FROM tbl_user WHERE id = ?`;
 
-        const [readResult] = await conn.query(sql_read_userdata, [
-            account   ]);
-        console.log(readResult);
+//         const [readResult] = await conn.query(sql_read_userdata, [
+//             account   ]);
+//         console.log(readResult);
 
-        if (readResult.length === 0) {
-            console.log("로그인을 실패하였습니다. 아이디나 비밀번호를 확인하세요.");
-            return res.status(401).json({
-                success: false,
-                message: "아이디 또는 비밀번호가 일치하지 않습니다."
-            });
-        }
+//         if (readResult.length === 0) {
+//             console.log("로그인을 실패하였습니다. 아이디나 비밀번호를 확인하세요.");
+//             return res.status(401).json({
+//                 success: false,
+//                 message: "아이디 또는 비밀번호가 일치하지 않습니다."
+//             });
+//         }
 
 
 
-        const isValid = await argon2.verify(readResult[0].password_hash, password);
-        if (!isValid) {
-            console.log("로그인을 실패하였습니다. 아이디나 비밀번호를 확인하세요.");
-            return res.status(401).json({
-                success: false,
-                message: "아이디 또는 비밀번호가 일치하지 않습니다."
-            });
-        }
+//         const isValid = await argon2.verify(readResult[0].password_hash, password);
+//         if (!isValid) {
+//             console.log("로그인을 실패하였습니다. 아이디나 비밀번호를 확인하세요.");
+//             return res.status(401).json({
+//                 success: false,
+//                 message: "아이디 또는 비밀번호가 일치하지 않습니다."
+//             });
+//         }
 
-        const loginUser = readResult[0];
-        const token = jwt.sign(
-            {
-                user_idx: loginUser.user_idx,
-                account: loginUser.id,
-                name: loginUser.name
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: process.env.JWT_EXPIRES_IN || "2h"
-            }
-        );
+//         const loginUser = readResult[0];
+//         const token = jwt.sign(
+//             {
+//                 user_idx: loginUser.user_idx,
+//                 account: loginUser.id,
+//                 name: loginUser.name
+//             },
+//             process.env.JWT_SECRET,
+//             {
+//                 expiresIn: process.env.JWT_EXPIRES_IN || "2h"
+//             }
+//         );
 
-        console.log("성공적으로 로그인되었습니다.");
-        return res.status(200).json({
-            success: true,
-            message: "성공적으로 로그인되었습니다.",
-            token: token,
-            user: {
-                user_idx: loginUser.user_idx,
-                account: loginUser.id,
-                name: loginUser.name,
-                email: loginUser.email,
-                phone: loginUser.phone
-            }
-        });
-    } catch (err) {
-        console.error("🚨 로그인 중 DB 에러 발생:", err);
-        return res.status(500).json({
-            success: false,
-            message: "로그인 처리 중 서버 오류가 발생했습니다."
-        });
-    }
-});
+//         console.log("성공적으로 로그인되었습니다.");
+//         return res.status(200).json({
+//             success: true,
+//             message: "성공적으로 로그인되었습니다.",
+//             token: token,
+//             user: {
+//                 user_idx: loginUser.user_idx,
+//                 account: loginUser.id,
+//                 name: loginUser.name,
+//                 email: loginUser.email,
+//                 phone: loginUser.phone
+//             }
+//         });
+//     } catch (err) {
+//         console.error("🚨 로그인 중 DB 에러 발생:", err);
+//         return res.status(500).json({
+//             success: false,
+//             message: "로그인 처리 중 서버 오류가 발생했습니다."
+//         });
+//     }
+// });
 
 
 // =======================================================
