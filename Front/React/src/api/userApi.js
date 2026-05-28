@@ -1,6 +1,7 @@
 import client, { loginClient } from "./axios";
 
 const userBasePath = "/api/user";
+export const authBasePath = "/api/auth";
 
 //아이디 중복확인 api
 export const checkDuplicateAccountApi = async (account) => {
@@ -16,6 +17,6 @@ export const joinApi = async (body) => {
 
 //로그인 api
 export const loginApi = async (body) => {
-  const result = await loginClient.post(`${userBasePath}/read`, body);
+  const result = await loginClient.post(`${authBasePath}/login`, body);
   return result.data;
 };

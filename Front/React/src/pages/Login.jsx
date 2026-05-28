@@ -23,7 +23,11 @@ const Login = () => {
     mutationFn: loginApi,
     onSuccess: (data) => {
       if (data.success) {
-        processLogin({ ...data.user, accessToken: data.token });
+        processLogin({
+          ...data.user,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+        });
         nav("/");
       } else {
         openDialog(

@@ -1,7 +1,8 @@
 import axios from "axios";
 import { userInfoKey } from "../utils/utils";
+import { authBasePath } from "./userApi";
 
-const refreshPath = "auth/refresh";
+const refreshPath = `${authBasePath}/refresh`;
 
 export const loginClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -43,24 +44,21 @@ client.interceptors.response.use(
           localStorage.getItem(userInfoKey) || "null",
         ).info;
         const refreshToken = userInfo?.refreshToken || "";
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/${refreshPath}`,
-          {},
-          {
-            headers: { Authorization: `Bearer ${refreshToken}` },
-          },
-        );
+        const response = await loginClient.post(refreshPath, { refreshToken });
 
         const newAccessToken = response.data.accessToken;
-        const newRefreshToken = response.data.refreshToken;
+        //const newRefreshToken = response.data.refreshToken;
 
         // 새 토큰 저장
         localStorage.setItem(
           userInfoKey,
           JSON.stringify({
-            ...userInfo,
-            accessToken: newAccessToken,
-            refreshToken: newRefreshToken,
+            info: {
+              ...userInfo,
+              accessToken: newAccessToken,
+              refreshToken,
+              //refreshToken: newRefreshToken,
+            },
           }),
         );
 
