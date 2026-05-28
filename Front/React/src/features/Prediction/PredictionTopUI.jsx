@@ -42,7 +42,7 @@ const PredictionTopUI = ({ healthData, adviceData }) => {
 
   //5대 지표 부분
   const kpiResultList = useMemo(() => {
-    return convertKPIResultList(adviceData).map((item) => ({
+    return convertKPIResultList(healthData, adviceData).map((item) => ({
       ...item,
       predictionValue:
         currentLossKg === 0
