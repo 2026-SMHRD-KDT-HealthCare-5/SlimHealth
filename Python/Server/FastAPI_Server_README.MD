@@ -8,8 +8,8 @@ XGBoost 모델 기반 체중 감량 시 대사증후군 지표 예측 FastAPI �
 ```
 python/server/
 ├── FastAPI.py              # FastAPI 서버 메인 파일
-├── health_models_v4.pkl      # 학습된 ML 모델 (6개 지표)
-└── health_model_scores_v4.pkl # 모델 성능 점수 (MAE 등)
+├── health_models_v6.pkl      # 학습된 ML 모델 (6개 지표)
+└── health_model_scores_v6.pkl # 모델 성능 점수 (MAE 등)
 ```
 
 
