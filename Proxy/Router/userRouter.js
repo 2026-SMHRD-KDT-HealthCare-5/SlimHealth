@@ -39,8 +39,10 @@ router.post("/create", async ( req, res )=>{
         const sql_create_userdata = `INSERT INTO tbl_user
                 (id, password_hash, name, gender, birth_date, email, phone)
                 VALUES (?, ?, ?, ?, ?, ?, ?)`; 
-        const hashedPassword = await argon2.hash(password);
-        const [createResult] = await conn.query(sql_create_userdata, [ account, hashedPassword, name, genderCode, birthDate, email, phoneNumber ]);
+        const passwordHash = await argon2.hash(password, {
+            type: argon2.argon2id
+        });
+        const [createResult] = await conn.query(sql_create_userdata, [ account, passwordHash, name, genderCode, birthDate, email, phoneNumber ]);
         
 
         console.log(createResult);
