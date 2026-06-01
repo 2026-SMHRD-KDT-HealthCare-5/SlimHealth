@@ -8,3 +8,4 @@ Proxy/uploads/
 /.claude/
 *.png
 *.bak
+.ipynb_checkpoints/
